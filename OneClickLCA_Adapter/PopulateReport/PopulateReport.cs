@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This file is part of the Buildings and Habitats object Model (BHoM)
  * Copyright (c) 2015 - 2024, the respective contributors. All rights reserved.
  *
@@ -29,12 +29,12 @@ using BH.oM.Adapters.Excel;
 using BH.oM.Adapters.OneClickLCA;
 using BH.oM.Base;
 using BH.oM.Data.Requests;
+using BH.oM.LifeCycleAssessment;
 using BH.oM.LifeCycleAssessment.MaterialFragments;
 using BH.oM.LifeCycleAssessment.Results;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Linq;
 
@@ -161,33 +161,45 @@ namespace BH.Adapter.OneClickLCA
             if (!totals.ContainsKey("C1-C4") && totals.Keys.Any(k => k.StartsWith("C")))
                 totals["C1-C4"] = GetDouble(totals, "C1") + GetDouble(totals, "C2") + GetDouble(totals, "C3") + GetDouble(totals, "C4");
 
-            // Create the material result
-            List<double> resultValues = new List<double>
+            // Build per-module indicator dictionary from the string-keyed totals
+            Dictionary<BH.oM.LifeCycleAssessment.Module, double> indicators = new Dictionary<BH.oM.LifeCycleAssessment.Module, double>();
+            foreach (KeyValuePair<string, double> kvp in totals)
             {
-                double.NaN,
-                double.NaN,
-                double.NaN,
-                GetDouble(totals, "A1-A3", double.NaN),
-                GetDouble(totals, "A4", double.NaN),
-                GetDouble(totals, "A5", double.NaN),
-                GetDouble(totals, "B1", double.NaN),
-                GetDouble(totals, "B2", double.NaN),
-                GetDouble(totals, "B3", double.NaN),
-                GetDouble(totals, "B4", double.NaN),
-                GetDouble(totals, "B5", double.NaN),
-                GetDouble(totals, "B6", double.NaN),
-                GetDouble(totals, "B7", double.NaN),
-                GetDouble(totals, "B1-B7", double.NaN),
-                GetDouble(totals, "C1", double.NaN),
-                GetDouble(totals, "C2", double.NaN),
-                GetDouble(totals, "C3", double.NaN),
-                GetDouble(totals, "C4", double.NaN),
-                GetDouble(totals, "C1-C4", double.NaN),
-                GetDouble(totals, "D", double.NaN)
-            };
+                if (double.IsNaN(kvp.Value) || !m_SectionToModule.TryGetValue(kvp.Key, out BH.oM.LifeCycleAssessment.Module mod))
+                    continue;
+                indicators[mod] = kvp.Value;
+            }
 
-            return BH.Engine.LifeCycleAssessment.Create.MaterialResult(resultType, materialName, epdName, resultValues);
+            return (MaterialResult)Activator.CreateInstance(resultType, materialName, epdName, indicators);
         }
+
+        /***************************************************/
+        /**** Private Static Fields                     ****/
+        /***************************************************/
+
+        private static readonly Dictionary<string, Module> m_SectionToModule = new Dictionary<string, Module>
+        {
+            { "A1",    Module.A1 },
+            { "A2",    Module.A2 },
+            { "A3",    Module.A3 },
+            { "A1-A3", Module.A1toA3 },
+            { "A4",    Module.A4 },
+            { "A5",    Module.A5 },
+            { "B1",    Module.B1 },
+            { "B2",    Module.B2 },
+            { "B3",    Module.B3 },
+            { "B4",    Module.B4 },
+            { "B5",    Module.B5 },
+            { "B6",    Module.B6 },
+            { "B7",    Module.B7 },
+            { "B1-B7", Module.B1toB7 },
+            { "C1",    Module.C1 },
+            { "C2",    Module.C2 },
+            { "C3",    Module.C3 },
+            { "C4",    Module.C4 },
+            { "C1-C4", Module.C1toC4 },
+            { "D",     Module.D }
+        };
 
         /***************************************************/
     }
