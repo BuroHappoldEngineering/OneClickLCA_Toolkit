@@ -34,7 +34,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.InteropServices.ComTypes;
+using System.Text.Json;
 
 namespace BH.Adapter.OneClickLCA
 {
@@ -51,7 +53,7 @@ namespace BH.Adapter.OneClickLCA
 
 
         /***************************************************/
-        /**** Private Methods                           ****/
+        /**** Private Methods — Excel Report           ****/
         /***************************************************/
 
         private IEnumerable<object> _Pull(ReportRequest request)
@@ -199,6 +201,149 @@ namespace BH.Adapter.OneClickLCA
 
 
         /***************************************************/
+        /**** Private Methods — Carbon Data API        ****/
+        /***************************************************/
+
+        private IEnumerable<object> _Pull(CarbonDataApiRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password))
+            {
+                BH.Engine.Base.Compute.RecordError("Username and Password are required for the OneClick LCA Carbon Data API.");
+                return new List<object>();
+            }
+
+            string token = AcquireToken(request.Username, request.Password);
+            if (token == null)
+                return new List<object>();
+
+            List<string> documents = SearchResources(token, request);
+
+            return documents
+                .Select(d => Convert.ToEnvironmentalProductDeclaration(d))
+                .Where(epd => epd != null)
+                .Cast<object>()
+                .ToList();
+        }
+
+        /***************************************************/
+
+        private string AcquireToken(string username, string password)
+        {
+            const string tokenUrl = "https://id.oneclicklcaapp.com/realms/oneclicklca/protocol/openid-connect/token";
+
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    FormUrlEncodedContent body = new FormUrlEncodedContent(new Dictionary<string, string>
+                    {
+                        { "grant_type", "password" },
+                        { "client_id",  "oneclicklca-api" },
+                        { "username",   username },
+                        { "password",   password }
+                    });
+
+                    HttpResponseMessage response = client.PostAsync(tokenUrl, body).Result;
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        BH.Engine.Base.Compute.RecordError($"Failed to acquire OneClick LCA access token. Response: {(int)response.StatusCode} {response.ReasonPhrase}");
+                        return null;
+                    }
+
+                    string json = response.Content.ReadAsStringAsync().Result;
+
+                    using (JsonDocument doc = JsonDocument.Parse(json))
+                    {
+                        if (doc.RootElement.TryGetProperty("access_token", out JsonElement tokenElement))
+                            return tokenElement.GetString();
+                    }
+
+                    BH.Engine.Base.Compute.RecordError("Failed to extract access token from the OneClick LCA authentication response.");
+                    return null;
+                }
+            }
+            catch (Exception e)
+            {
+                BH.Engine.Base.Compute.RecordError($"Failed to acquire OneClick LCA access token. Error: {e.Message}");
+                return null;
+            }
+        }
+
+        /***************************************************/
+
+        private List<string> SearchResources(string token, CarbonDataApiRequest request)
+        {
+            const string searchUrl = "https://oneclicklcaapp.com/api/materials-carbon-data/resource/_search";
+            const int perPage = 250;
+
+            List<string> documents = new List<string>();
+            int page = 1;
+            int totalAvailable = int.MaxValue;
+
+            while (documents.Count < request.MaxResults && documents.Count < totalAvailable)
+            {
+                int remaining = Math.Min(perPage, request.MaxResults - documents.Count);
+
+                Dictionary<string, object> parameters = new Dictionary<string, object>
+                {
+                    { "q",        string.IsNullOrEmpty(request.SearchQuery) ? "*" : request.SearchQuery },
+                    { "page",     page },
+                    { "per_page", remaining }
+                };
+
+                if (!string.IsNullOrEmpty(request.QueryBy))
+                    parameters["query_by"] = request.QueryBy;
+
+                if (!string.IsNullOrEmpty(request.FilterBy))
+                    parameters["filter_by"] = request.FilterBy;
+
+                if (!string.IsNullOrEmpty(request.SortBy))
+                    parameters["sort_by"] = request.SortBy;
+
+                string responseJson = BH.Engine.Adapters.HTTP.Compute.MakeRequest(new BH.oM.Adapters.HTTP.GetRequest
+                {
+                    BaseUrl = searchUrl,
+                    Headers = new Dictionary<string, object> { { "Authorization", $"Bearer {token}" } },
+                    Parameters = parameters
+                });
+
+                if (responseJson == null)
+                    break;
+
+                try
+                {
+                    using (JsonDocument doc = JsonDocument.Parse(responseJson))
+                    {
+                        JsonElement root = doc.RootElement;
+
+                        if (root.TryGetProperty("found", out JsonElement found))
+                            totalAvailable = found.GetInt32();
+
+                        if (!root.TryGetProperty("hits", out JsonElement hits) || hits.GetArrayLength() == 0)
+                            break;
+
+                        foreach (JsonElement hit in hits.EnumerateArray())
+                        {
+                            if (hit.TryGetProperty("document", out JsonElement document))
+                                documents.Add(document.GetRawText());
+                        }
+                    }
+                }
+                catch (JsonException e)
+                {
+                    BH.Engine.Base.Compute.RecordError($"Failed to parse search response from OneClick LCA API. Error: {e.Message}");
+                    break;
+                }
+
+                page++;
+            }
+
+            return documents;
+        }
+
+
+        /***************************************************/
         /**** Fallback Methods                          ****/
         /***************************************************/
 
@@ -215,7 +360,6 @@ namespace BH.Adapter.OneClickLCA
         /***************************************************/
     }
 }
-
 
 
 
