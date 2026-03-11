@@ -34,11 +34,11 @@ namespace BH.oM.Adapters.OneClickLCA
         /**** Properties                                ****/
         /***************************************************/
 
-        [Description("OneClick LCA account username used for authentication.")]
-        public virtual string Username { get; set; } = "";
+        [Description("OAuth2 client identifier used for client credentials authentication.")]
+        public virtual string ClientId { get; set; } = "";
 
-        [Description("OneClick LCA account password used for authentication.")]
-        public virtual string Password { get; set; } = "";
+        [Description("OAuth2 client secret used for client credentials authentication.")]
+        public virtual string ClientSecret { get; set; } = "";
 
         [Description("The query text to search for. Use * to return all resources matching the filter, or provide a specific term such as a material name or resource ID. Defaults to * (all resources).")]
         public virtual string SearchQuery { get; set; } = "*";
@@ -58,5 +58,6 @@ namespace BH.oM.Adapters.OneClickLCA
         /***************************************************/
     }
 }
+
 
 

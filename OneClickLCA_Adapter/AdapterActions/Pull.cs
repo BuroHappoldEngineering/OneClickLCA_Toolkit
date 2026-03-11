@@ -206,13 +206,13 @@ namespace BH.Adapter.OneClickLCA
 
         private IEnumerable<object> _Pull(CarbonDataApiRequest request)
         {
-            if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password))
+            if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
             {
-                BH.Engine.Base.Compute.RecordError("Username and Password are required for the OneClick LCA Carbon Data API.");
+                BH.Engine.Base.Compute.RecordError("Client ID and Client Secret are required for the OneClick LCA Carbon Data API.");
                 return new List<object>();
             }
 
-            string token = AcquireToken(request.Username, request.Password);
+            string token = AcquireToken(request.ClientId, request.ClientSecret);
             if (token == null)
                 return new List<object>();
 
@@ -227,7 +227,7 @@ namespace BH.Adapter.OneClickLCA
 
         /***************************************************/
 
-        private string AcquireToken(string username, string password)
+        private string AcquireToken(string clientId, string clientSecret)
         {
             const string tokenUrl = "https://id.oneclicklcaapp.com/realms/oneclicklca/protocol/openid-connect/token";
 
@@ -235,12 +235,12 @@ namespace BH.Adapter.OneClickLCA
             {
                 using (HttpClient client = new HttpClient())
                 {
+                    // Prepare client credentials form
                     FormUrlEncodedContent body = new FormUrlEncodedContent(new Dictionary<string, string>
                     {
-                        { "grant_type", "password" },
-                        { "client_id",  "oneclicklca-api" },
-                        { "username",   username },
-                        { "password",   password }
+                        { "grant_type", "client_credentials" },
+                        { "client_id", clientId },
+                        { "client_secret", clientSecret }
                     });
 
                     HttpResponseMessage response = client.PostAsync(tokenUrl, body).Result;
@@ -360,6 +360,7 @@ namespace BH.Adapter.OneClickLCA
         /***************************************************/
     }
 }
+
 
 
 
