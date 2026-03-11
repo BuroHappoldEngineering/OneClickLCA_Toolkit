@@ -198,16 +198,82 @@ namespace BH.Adapter.OneClickLCA
                 hasData = true;
             }
 
-            if (root.TryGetProperty("environmentDataPeriod", out JsonElement dataPeriod) && dataPeriod.ValueKind == JsonValueKind.Number)
+            // environmentDataPeriod may be a number or a string; parse safely
+            if (root.TryGetProperty("environmentDataPeriod", out JsonElement dataPeriod) && dataPeriod.ValueKind != JsonValueKind.Null)
             {
-                data.ReferenceYear = dataPeriod.GetInt32();
-                hasData = true;
+                try
+                {
+                    if (dataPeriod.ValueKind == JsonValueKind.Number)
+                    {
+                        double d = dataPeriod.GetDouble();
+                        data.ReferenceYear = (int)d;
+                        hasData = true;
+                    }
+                    else if (dataPeriod.ValueKind == JsonValueKind.String)
+                    {
+                        string s = dataPeriod.GetString();
+                        if (!string.IsNullOrWhiteSpace(s))
+                        {
+                            if (int.TryParse(s, out int parsed))
+                            {
+                                data.ReferenceYear = parsed;
+                                hasData = true;
+                            }
+                            else if (double.TryParse(s, out double d2))
+                            {
+                                data.ReferenceYear = (int)d2;
+                                hasData = true;
+                            }
+                            else
+                            {
+                                BH.Engine.Base.Compute.RecordWarning($"Unrecognised format for environmentDataPeriod: '{s}'");
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    BH.Engine.Base.Compute.RecordWarning($"Failed to parse environmentDataPeriod. Error: {e.Message}");
+                }
             }
 
-            if (root.TryGetProperty("serviceLife", out JsonElement serviceLife) && serviceLife.ValueKind == JsonValueKind.Number)
+            // serviceLife may be a number or a string; parse safely
+            if (root.TryGetProperty("serviceLife", out JsonElement serviceLife) && serviceLife.ValueKind != JsonValueKind.Null)
             {
-                data.LifeSpan = serviceLife.GetInt32();
-                hasData = true;
+                try
+                {
+                    if (serviceLife.ValueKind == JsonValueKind.Number)
+                    {
+                        double d = serviceLife.GetDouble();
+                        data.LifeSpan = (int)d;
+                        hasData = true;
+                    }
+                    else if (serviceLife.ValueKind == JsonValueKind.String)
+                    {
+                        string s = serviceLife.GetString();
+                        if (!string.IsNullOrWhiteSpace(s))
+                        {
+                            if (int.TryParse(s, out int parsed))
+                            {
+                                data.LifeSpan = parsed;
+                                hasData = true;
+                            }
+                            else if (double.TryParse(s, out double d2))
+                            {
+                                data.LifeSpan = (int)d2;
+                                hasData = true;
+                            }
+                            else
+                            {
+                                BH.Engine.Base.Compute.RecordWarning($"Unrecognised format for serviceLife: '{s}'");
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    BH.Engine.Base.Compute.RecordWarning($"Failed to parse serviceLife. Error: {e.Message}");
+                }
             }
 
             if (root.TryGetProperty("environmentDataSourceStandard", out JsonElement dataStandard) && dataStandard.ValueKind != JsonValueKind.Null)
