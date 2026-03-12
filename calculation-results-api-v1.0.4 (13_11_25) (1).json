@@ -1,0 +1,1024 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Calculation Results API",
+    "description": "Calculation Results API by One Click LCA provides access to project results. It provides one endpoint to retrieve projects with associated designs and tools, and another endpoint to retrieve actual results per design-tool combination.\n\n\n\nTo access this API you need to receive an access token from One Click LCA. Additional support documentation is available on request from One Click LCA.",
+    "termsOfService": "https://oneclicklca.com/service-terms",
+    "contact": {
+      "name": "One Click LCA",
+      "url": "https://www.oneclicklca.com/",
+      "email": "sales@oneclicklca.com"
+    },
+    "version": "1.0.4"
+  },
+  "servers": [
+    {
+      "url": "https://oneclicklcaapp.com/results-api"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Calculation Results",
+      "description": "APIs to handle calculation results"
+    },
+    {
+      "name": "Projects",
+      "description": "These API(s) are used to handle project related operations"
+    }
+  ],
+  "paths": {
+    "/projects": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Get list of Projects with associated designs",
+        "description": "Get list of Projects with associated designs by page for a user who was added as manager, modifier or readonly user. It doesn't return the deleted designs. ",
+        "operationId": "getProjects",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page Number: 1, 2, 3... If not provided, defaults to 1",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of Records per Page. If not provided, defaults to value: 20 Maximum value allowed is: 100",
+            "required": true,
+            "schema": {
+              "maximum": 100,
+              "type": "string"
+            }
+          },
+          {
+            "name": "lastUpdatedAfter",
+            "in": "query",
+            "description": "The response will include only project-level information updated after this date (UTC). To retrieve design-level information or new values, fetch all data without this filter and use the lastUpdated field to identify the most recent entries.Supported Date formats: *yyyy-MM-dd*, *M/d/yy* or *dd.MM.yyyy*",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2024-08-30"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Found the project(s)",
+            "headers": {
+              "ocl-request-id": {
+                "description": "Unique request identifier assigned to each request for request tracing purpose.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectListResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden. You do not have permission to access the resource.",
+            "headers": {
+              "ocl-request-id": {
+                "description": "Unique request identifier assigned to each request for request tracing purpose.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceErrorResponse"
+                },
+                "example": {
+                  "error": [
+                    {
+                      "code": "RESULTS_8003",
+                      "level": "ERROR",
+                      "message": "You don't have access to the requested resource",
+                      "description": ""
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found. The requested resource is not found.",
+            "headers": {
+              "ocl-request-id": {
+                "description": "Unique request identifier assigned to each request for request tracing purpose.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceErrorResponse"
+                },
+                "example": {
+                  "error": [
+                    {
+                      "code": "RESULTS_8004",
+                      "level": "ERROR",
+                      "message": "Resource not found",
+                      "description": ""
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error. The server encountered an unexpected condition.",
+            "headers": {
+              "ocl-request-id": {
+                "description": "Unique request identifier assigned to each request for request tracing purpose.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceErrorResponse"
+                },
+                "example": {
+                  "error": [
+                    {
+                      "code": "RESULTS_9999",
+                      "level": "ERROR",
+                      "message": "Some technical exception occurred",
+                      "description": "Server is unable to process the request due to XYZ"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. The request sent to the server is invalid or corrupted. The request parameters could be malformed or HTTP headers could be invalid.",
+            "headers": {
+              "ocl-request-id": {
+                "description": "Unique request identifier assigned to each request for request tracing purpose.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceErrorResponse"
+                },
+                "example": {
+                  "error": [
+                    {
+                      "code": "RESULTS_8006",
+                      "level": "ERROR",
+                      "message": "Some attribute is invalid",
+                      "description": ""
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized. The access token in the request is invalid."
+          }
+        },
+        "security": [
+          {
+            "bearer-token": []
+          }
+        ]
+      }
+    },
+    "/calculation-results": {
+      "get": {
+        "tags": [
+          "Calculation Results"
+        ],
+        "summary": "Get Calculation Results",
+        "description": "Get list of Calculation Results with associated filters for design and tool identifier.",
+        "operationId": "getAllCalculationResultsSynthetic",
+        "parameters": [
+          {
+            "name": "designId",
+            "in": "query",
+            "description": "Mandatory Unique identifier for the design.",
+            "required": true,
+            "schema": {
+              "maxLength": 24,
+              "minLength": 24,
+              "pattern": "^[a-zA-Z0-9]*$",
+              "type": "string",
+              "description": "Mandatory Unique identifier for the design.",
+              "example": "643c13575b614a2bfdbcbb03"
+            }
+          },
+          {
+            "name": "toolId",
+            "in": "query",
+            "description": "Mandatory Identifier for the tool used in the calculation",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 2,
+              "type": "string",
+              "description": "Mandatory Identifier for the tool used in the calculation",
+              "example": "flexibleEPDTool"
+            }
+          },
+          {
+            "name": "showAllCategoriesForTool",
+            "in": "query",
+            "description": "Optional Flag to show all result categories for the tool. It is taken into account only when toolId is set. By default, result doesn't contain dummy categories (like fullBuildings) that are not shown on the result page.",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Optional Flag to show all result categories for the tool. It is taken into account only when toolId is set. By default, result doesn't contain dummy categories (like fullBuildings) that are not shown on the result page.",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden. You do not have permission to access the resource.",
+            "headers": {
+              "ocl-request-id": {
+                "description": "Unique request identifier assigned to each request for request tracing purpose.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceErrorResponse"
+                },
+                "example": {
+                  "error": [
+                    {
+                      "code": "RESULTS_8003",
+                      "level": "ERROR",
+                      "message": "You don't have access to the requested resource",
+                      "description": ""
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found. The requested resource is not found.",
+            "headers": {
+              "ocl-request-id": {
+                "description": "Unique request identifier assigned to each request for request tracing purpose.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceErrorResponse"
+                },
+                "example": {
+                  "error": [
+                    {
+                      "code": "RESULTS_8004",
+                      "level": "ERROR",
+                      "message": "Resource not found",
+                      "description": ""
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error. The server encountered an unexpected condition.",
+            "headers": {
+              "ocl-request-id": {
+                "description": "Unique request identifier assigned to each request for request tracing purpose.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceErrorResponse"
+                },
+                "example": {
+                  "error": [
+                    {
+                      "code": "RESULTS_9999",
+                      "level": "ERROR",
+                      "message": "Some technical exception occurred",
+                      "description": "Server is unable to process the request due to XYZ"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. The request sent to the server is invalid or corrupted. The request parameters could be malformed or HTTP headers could be invalid.",
+            "headers": {
+              "ocl-request-id": {
+                "description": "Unique request identifier assigned to each request for request tracing purpose.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceErrorResponse"
+                },
+                "example": {
+                  "error": [
+                    {
+                      "code": "RESULTS_8006",
+                      "level": "ERROR",
+                      "message": "Some attribute is invalid",
+                      "description": ""
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Found the calculation results",
+            "headers": {
+              "ocl-request-id": {
+                "description": "Unique request identifier assigned to each request for request tracing purpose.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalculationResultsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized. The access token in the request is invalid."
+          }
+        },
+        "security": [
+          {
+            "bearer-token": []
+          }
+        ]
+      }
+    },
+    "/calculation-results/dictionary": {
+      "get": {
+        "tags": [
+          "Calculation Results"
+        ],
+        "summary": "Get all dictionary data",
+        "description": "Get all dictionary data of actual names of tools, categories, and rules found in the design",
+        "operationId": "getDictionaryData",
+        "parameters": [
+          {
+            "name": "designId",
+            "in": "query",
+            "description": "Unique identifier for the design.",
+            "required": true,
+            "schema": {
+              "maxLength": 2147483647,
+              "minLength": 24,
+              "pattern": "^[a-zA-Z0-9]*$",
+              "type": "string",
+              "description": "Unique identifier for the design.",
+              "example": "643c13575b614a2bfdbcbb03"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden. You do not have permission to access the resource.",
+            "headers": {
+              "ocl-request-id": {
+                "description": "Unique request identifier assigned to each request for request tracing purpose.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceErrorResponse"
+                },
+                "example": {
+                  "error": [
+                    {
+                      "code": "RESULTS_8003",
+                      "level": "ERROR",
+                      "message": "You don't have access to the requested resource",
+                      "description": ""
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found. The requested resource is not found.",
+            "headers": {
+              "ocl-request-id": {
+                "description": "Unique request identifier assigned to each request for request tracing purpose.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceErrorResponse"
+                },
+                "example": {
+                  "error": [
+                    {
+                      "code": "RESULTS_8004",
+                      "level": "ERROR",
+                      "message": "Resource not found",
+                      "description": ""
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Found the dictionary data",
+            "headers": {
+              "ocl-request-id": {
+                "description": "Unique request identifier assigned to each request for request tracing purpose.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DictionaryResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error. The server encountered an unexpected condition.",
+            "headers": {
+              "ocl-request-id": {
+                "description": "Unique request identifier assigned to each request for request tracing purpose.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceErrorResponse"
+                },
+                "example": {
+                  "error": [
+                    {
+                      "code": "RESULTS_9999",
+                      "level": "ERROR",
+                      "message": "Some technical exception occurred",
+                      "description": "Server is unable to process the request due to XYZ"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. The request sent to the server is invalid or corrupted. The request parameters could be malformed or HTTP headers could be invalid.",
+            "headers": {
+              "ocl-request-id": {
+                "description": "Unique request identifier assigned to each request for request tracing purpose.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceErrorResponse"
+                },
+                "example": {
+                  "error": [
+                    {
+                      "code": "RESULTS_8006",
+                      "level": "ERROR",
+                      "message": "Some attribute is invalid",
+                      "description": ""
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized. The access token in the request is invalid."
+          }
+        },
+        "security": [
+          {
+            "bearer-token": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BasicUserDetails": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "The unique identifier of the user",
+            "example": "64ae7d7e59d51c42000d5a80"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email address of the user",
+            "example": "john.doe@oneclicklca.com"
+          },
+          "name": {
+            "type": "string",
+            "description": "The actual name of the user",
+            "example": "John Doe"
+          }
+        },
+        "description": "User last updated the project"
+      },
+      "Design": {
+        "type": "object",
+        "properties": {
+          "designId": {
+            "type": "string",
+            "description": "Unique id of the design",
+            "example": "64ae7d7e59d51c42000d5a80"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the design",
+            "example": "Conception 1"
+          },
+          "designType": {
+            "type": "string",
+            "description": "Design Type of the design. Valid values are design, operatingPeriod, carbonDesign etc.",
+            "example": "carbonDesign"
+          },
+          "chosenDesign": {
+            "type": "boolean",
+            "description": "ChosenDesign flag represents if the design is set as the latest status. It helps in identifying and  highlighting the design as the latest status design",
+            "example": true
+          },
+          "baseline": {
+            "type": "boolean",
+            "description": "Flag represents whether it is a baseline design of the project.",
+            "example": true
+          },
+          "ribaStage": {
+            "type": "string",
+            "description": "Stage of construction process (RIBA / AIA stages)",
+            "enum": [
+              "STRATEGIC",
+              "PREPARATION_AND_BRIEF",
+              "CONCEPT",
+              "DEVELOPED",
+              "TECHNICAL",
+              "CONSTRUCTION",
+              "HANDOVER_AND_CLOSE_OUT",
+              "IN_USE"
+            ]
+          },
+          "lastUpdated": {
+            "type": "string",
+            "description": "Last updated date and time of the design in ISO 8601 UTC format",
+            "format": "date-time",
+            "example": "2023-08-11T12:19:05.027Z"
+          },
+          "createdBy": {
+            "$ref": "#/components/schemas/BasicUserDetails"
+          },
+          "lastUpdatedBy": {
+            "$ref": "#/components/schemas/BasicUserDetails"
+          }
+        },
+        "description": "List of the associated designs of the project"
+      },
+      "Notification": {
+        "type": "object",
+        "properties": {
+          "level": {
+            "type": "string",
+            "description": "The severity level of the error or message. Possible values are:\n    - INFO: Provides informational messages about system operations or status.\n    - WARNING: Indicates potential issues that require attention but don't disrupt the system.\n    - ERROR: Represents critical failures or problems that require immediate attention.\n"
+          },
+          "code": {
+            "type": "string",
+            "description": "A unique code associated with info, warning or error message"
+          },
+          "message": {
+            "type": "string",
+            "description": "Actual notification message"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional technical description about the error"
+          }
+        },
+        "description": "List of error messages. The list will contain objects with ERROR level only.",
+        "example": [
+          {
+            "code": "RESULTS_9999",
+            "level": "ERROR",
+            "message": "Operation did not complete.",
+            "description": ""
+          }
+        ]
+      },
+      "PaginationInfo": {
+        "type": "object",
+        "properties": {
+          "currentPage": {
+            "type": "integer",
+            "description": "Current page number",
+            "format": "int32",
+            "example": 1
+          },
+          "amountPerPage": {
+            "type": "integer",
+            "description": "Number of records per page, defaults to value 20",
+            "format": "int32",
+            "example": 50
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Total number of pages",
+            "format": "int32",
+            "example": 2
+          },
+          "totalItems": {
+            "type": "integer",
+            "description": "Total number of records",
+            "format": "int64",
+            "example": 75
+          }
+        }
+      },
+"Project": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "description": "Unique id of the project",
+            "example": "64ae7d7e59d51c42000d5a79"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the project",
+            "example": "IT - LEED v4-1 Office"
+          },
+          "projectType": {
+            "type": "string",
+            "description": "Type of the project. Valid values are building, infrastructure, buildingProduct etc.",
+            "example": "building"
+          },
+          "assetType": {
+            "type": "string",
+            "description": "Type of the building/product. Valid values for buildings are 'Apartment buildings', 'Cultural buildings', 'Data centers' etc.Valid values for product are 'Asphalt', 'Aggregates', 'Cement and cement mixes' etc.",
+            "example": "Apartment Buildings"
+          },
+          "dateCreated": {
+            "type": "string",
+            "description": "Date created of the project in ISO 8601 UTC format",
+            "format": "date-time",
+            "example": "2023-08-11T12:19:05.027Z"
+          },
+          "lastUpdated": {
+            "type": "string",
+            "description": "Last updated date and time of the project in ISO 8601 UTC format",
+            "format": "date-time",
+            "example": "2023-08-11T12:19:05.027Z"
+          },
+          "availableTools": {
+            "type": "array",
+            "description": "List of available tools",
+            "items": {
+              "type": "string",
+              "description": "List of available tools"
+            }
+          },
+          "designs": {
+            "type": "array",
+            "description": "List of the associated designs of the project",
+            "items": { "$ref": "#/components/schemas/Design" }
+          },
+          "country": {
+            "type": "string",
+            "description": "Name of the country of the project",
+            "example": "finland"
+          },
+          "projectCode": {
+            "type": "string",
+            "description": "project code that belongs to the project"
+          },
+          "createdBy": { "$ref": "#/components/schemas/BasicUserDetails" },
+          "lastUpdatedBy": { "$ref": "#/components/schemas/BasicUserDetails" },
+          "primaryTool": {
+            "type": "string",
+            "description": "Primary tool selected for a project"
+          }
+        },
+        "description": "List of the projects"
+      },
+      "ServiceErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/Notification"
+          }
+        }
+      },
+      "CalculationResultAtomic": {
+        "type": "object",
+        "properties": {
+          "dataSetId": {
+            "type": "string",
+            "description": "Dataset ID is used to technically connect the resourceId and mainResourceId",
+            "example": "64ae7d7e59d51c42000d5a80"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Resource ID identifies the resource from which the impacts are taken from. For example, transport impacts are taken from the transport resource, like lorry, and not from the material itself. The link to the corresponding material is kept in mainResourceid",
+            "example": "trailerCombinationFullLoad"
+          },
+          "resourceName": {
+            "type": "string",
+            "description": "Resource Name corresponding to the resourceId",
+            "example": "Glass wool insulation for pipes"
+          },
+          "profileId": {
+            "type": "string",
+            "description": "Profile ID of the calculation result",
+            "example": "GenMat2023"
+          },
+          "result": {
+            "type": "number",
+            "description": "The calculation result value",
+            "format": "double",
+            "example": 0.156
+          },
+          "mainResourceId": {
+            "type": "string",
+            "description": "The MainResourceID identifies the resource for which the impact is for. For example, if the impact is for transport of a material, the mainResourceId represents the material. In summary, the impacts are coming from the resourceId but are linked to the mainResourceId",
+            "example": "genABCPowder"
+          },
+          "mainResourceName": {
+            "type": "string",
+            "description": "The name corresponding to the mainResourceId",
+            "example": "ABC Powder for fire extinguisher"
+          },
+          "mainProfileId": {
+            "type": "string",
+            "description": "Profile ID of the main resource the resource of the result associated to",
+            "example": "GenMat2022"
+          }
+        },
+        "description": "List of the calculation result datasets"
+      },
+      "CalculationResultSynthetic": {
+        "type": "object",
+        "properties": {
+          "designId": {
+            "type": "string",
+            "description": "Unique ID of the design",
+            "example": "64ae7d7e59d51c42000d5a81"
+          },
+          "toolId": {
+            "type": "string",
+            "description": "Calculation Tool ID used to calculate the impact",
+            "example": "simplifiedLifeCycleCarbon"
+          },
+          "calculationRuleId": {
+            "type": "string",
+            "description": "Calculation Rule ID used to calculate the impact",
+            "example": "GWP_failover"
+          },
+          "resultCategoryId": {
+            "type": "string",
+            "description": "Result Category ID",
+            "example": "A1-A3-full"
+          },
+          "isExpandableCategory": {
+            "type": "boolean",
+            "description": "Is Category Expandable"
+          },
+          "result": {
+            "type": "number",
+            "description": "Calculation Result Value",
+            "format": "double",
+            "example": 90376.497774022
+          },
+          "calculationResultDataSets": {
+            "type": "array",
+            "description": "List of the calculation result datasets",
+            "items": {
+              "$ref": "#/components/schemas/CalculationResultAtomic"
+            }
+          }
+        },
+        "description": "List of calculation results"
+      },
+      "CalculationResultsResponse": {
+        "type": "object",
+        "properties": {
+          "warning": {
+            "$ref": "#/components/schemas/Notification"
+          },
+          "info": {
+            "$ref": "#/components/schemas/Notification"
+          },
+          "calculationResults": {
+            "type": "array",
+            "description": "List of calculation results",
+            "items": {
+              "$ref": "#/components/schemas/CalculationResultSynthetic"
+            }
+          },
+          "calculationTotalResults": {
+            "type": "array",
+            "description": "Total calculation results",
+            "items": {
+              "$ref": "#/components/schemas/CalculationTotalResult"
+            }
+          }
+        }
+      },
+      "CalculationTotalResult": {
+        "type": "object",
+        "properties": {
+          "designId": {
+            "type": "string",
+            "description": "Unique ID of the design",
+            "example": "64ae7d7e59d51c42000d5a81"
+          },
+          "toolId": {
+            "type": "string",
+            "description": "Calculation Tool ID used to calculate the impact",
+            "example": "simplifiedLifeCycleCarbon"
+          },
+          "calculationRuleId": {
+            "type": "string",
+            "description": "Calculation Rule Id"
+          },
+          "result": {
+            "type": "number",
+            "description": "Total calculation result for the rule",
+            "format": "double"
+          },
+          "resultUnit": {
+            "type": "string",
+            "description": "Unit for the total calculation result"
+          }
+        },
+        "description": "Total calculation results"
+      },
+      "DictionaryResponse": {
+        "type": "object",
+        "properties": {
+          "warning": {
+            "$ref": "#/components/schemas/Notification"
+          },
+          "info": {
+            "$ref": "#/components/schemas/Notification"
+          },
+          "dictionaryData": {
+            "$ref": "#/components/schemas/DictionaryData"
+          }
+        }
+      },
+      "ProjectListResponse": {
+        "type": "object",
+        "properties": {
+          "warning": {
+            "$ref": "#/components/schemas/Notification"
+          },
+          "info": {
+            "$ref": "#/components/schemas/Notification"
+          },
+          "projects": {
+            "type": "array",
+            "description": "List of the projects",
+            "items": {
+              "$ref": "#/components/schemas/Project"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationInfo"
+          }
+        }
+      },
+      "DictionaryData": {
+        "type": "object",
+        "properties": {
+          "designId": {
+            "type": "string"
+          },
+          "toolData": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolData"
+            }
+          }
+        },
+        "description": "List of dictionary response"
+      },
+      "ToolData": {
+        "type": "object",
+        "properties": {
+          "tool": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "rules": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "categories": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearer-token": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
