@@ -204,7 +204,7 @@ namespace BH.Adapter.OneClickLCA
         /**** Private Methods — Carbon Data API        ****/
         /***************************************************/
 
-        private IEnumerable<object> _Pull(CarbonDataApiRequest request)
+        private IEnumerable<object> _Pull(MaterialsCarbonDataApiRequest request)
         {
             if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
             {
@@ -272,7 +272,7 @@ namespace BH.Adapter.OneClickLCA
 
         /***************************************************/
 
-        private List<string> SearchResources(string token, CarbonDataApiRequest request)
+        private List<string> SearchResources(string token, MaterialsCarbonDataApiRequest request)
         {
             const string searchUrl = "https://oneclicklcaapp.com/api/materials-carbon-data/resource/_search";
             const int perPage = 250;

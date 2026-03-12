@@ -28,7 +28,7 @@ using System.ComponentModel;
 namespace BH.oM.Adapters.OneClickLCA
 {
     [Description("Request EPD data from the OneClick LCA Materials Carbon Data API. Returns a list of EnvironmentalProductDeclaration objects matched by the provided search criteria.")]
-    public class CarbonDataApiRequest : BHoMObject, IRequest
+    public class MaterialsCarbonDataApiRequest : BHoMObject, IRequest
     {
         /***************************************************/
         /**** Properties                                ****/
@@ -58,6 +58,7 @@ namespace BH.oM.Adapters.OneClickLCA
         /***************************************************/
     }
 }
+
 
 
 
