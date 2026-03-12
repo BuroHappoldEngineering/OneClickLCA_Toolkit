@@ -344,6 +344,154 @@ namespace BH.Adapter.OneClickLCA
 
 
         /***************************************************/
+        /**** Private Methods — Calculation Results API ****/
+        /***************************************************/
+
+        private const string CalculationResultsApiBase = "https://oneclicklcaapp.com/results-api";
+
+        private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        private IEnumerable<object> _Pull(GetProjectsRequest request)
+        {
+            if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
+            {
+                BH.Engine.Base.Compute.RecordError("Client ID and Client Secret are required for the OneClick LCA Calculation Results API.");
+                return new List<object>();
+            }
+
+            string token = AcquireToken(request.ClientId, request.ClientSecret);
+            if (token == null)
+                return new List<object>();
+
+            var allProjects = new List<object>();
+            int page = request.Page;
+            int limit = Math.Min(100, Math.Max(1, request.Limit));
+            int collected = 0;
+
+            while (collected < request.MaxResults)
+            {
+                var parameters = new Dictionary<string, object> { { "page", page }, { "limit", limit } };
+                if (!string.IsNullOrEmpty(request.LastUpdatedAfter))
+                    parameters["lastUpdatedAfter"] = request.LastUpdatedAfter;
+
+                string responseJson = BH.Engine.Adapters.HTTP.Compute.MakeRequest(new BH.oM.Adapters.HTTP.GetRequest
+                {
+                    BaseUrl = $"{CalculationResultsApiBase}/projects",
+                    Headers = new Dictionary<string, object> { { "Authorization", $"Bearer {token}" } },
+                    Parameters = parameters
+                });
+
+                if (string.IsNullOrEmpty(responseJson))
+                    break;
+
+                try
+                {
+                    var response = JsonSerializer.Deserialize<ProjectListResponse>(responseJson, JsonOptions);
+                    if (response?.Projects != null)
+                    {
+                        foreach (Project project in response.Projects)
+                            allProjects.Add(project);
+                        collected += response.Projects.Count;
+                    }
+
+                    if (response?.Pagination == null || page >= response.Pagination.TotalPages || response.Projects?.Count == 0)
+                        break;
+                    page++;
+                }
+                catch (JsonException e)
+                {
+                    BH.Engine.Base.Compute.RecordError($"Failed to deserialize projects response: {e.Message}");
+                    break;
+                }
+            }
+
+            return allProjects;
+        }
+
+        /***************************************************/
+
+        private IEnumerable<object> _Pull(GetDictionaryDataRequest request)
+        {
+            if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
+            {
+                BH.Engine.Base.Compute.RecordError("Client ID and Client Secret are required for the OneClick LCA Calculation Results API.");
+                return new List<object>();
+            }
+            if (string.IsNullOrEmpty(request.DesignId))
+            {
+                BH.Engine.Base.Compute.RecordError("DesignId is required for GetDictionaryDataRequest.");
+                return new List<object>();
+            }
+
+            string token = AcquireToken(request.ClientId, request.ClientSecret);
+            if (token == null)
+                return new List<object>();
+
+            string responseJson = BH.Engine.Adapters.HTTP.Compute.MakeRequest(new BH.oM.Adapters.HTTP.GetRequest
+            {
+                BaseUrl = $"{CalculationResultsApiBase}/calculation-results/dictionary",
+                Headers = new Dictionary<string, object> { { "Authorization", $"Bearer {token}" } },
+                Parameters = new Dictionary<string, object> { { "designId", request.DesignId } }
+            });
+
+            if (string.IsNullOrEmpty(responseJson))
+                return new List<object>();
+
+            try
+            {
+                var response = JsonSerializer.Deserialize<DictionaryResponse>(responseJson, JsonOptions);
+                if (response != null)
+                    return new List<object> { response };
+            }
+            catch (JsonException e)
+            {
+                BH.Engine.Base.Compute.RecordError($"Failed to deserialize dictionary response: {e.Message}");
+            }
+
+            return new List<object>();
+        }
+
+        /***************************************************/
+
+        private IEnumerable<object> _Pull(CalculationResultsApiRequest request)
+        {
+            if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
+            {
+                BH.Engine.Base.Compute.RecordError("Client ID and Client Secret are required for the OneClick LCA Calculation Results API.");
+                return new List<object>();
+            }
+            if (string.IsNullOrEmpty(request.DesignId) || string.IsNullOrEmpty(request.ToolId))
+            {
+                BH.Engine.Base.Compute.RecordError("DesignId and ToolId are required for CalculationResultsApiRequest.");
+                return new List<object>();
+            }
+
+            string token = AcquireToken(request.ClientId, request.ClientSecret);
+            if (token == null)
+                return new List<object>();
+
+            string calculationJson = BH.Engine.Adapters.HTTP.Compute.MakeRequest(new BH.oM.Adapters.HTTP.GetRequest
+            {
+                BaseUrl = $"{CalculationResultsApiBase}/calculation-results",
+                Headers = new Dictionary<string, object> { { "Authorization", $"Bearer {token}" } },
+                Parameters = new Dictionary<string, object>
+                {
+                    { "designId", request.DesignId },
+                    { "toolId", request.ToolId },
+                    { "showAllCategoriesForTool", request.ShowAllCategoriesForTool }
+                }
+            });
+
+            if (string.IsNullOrEmpty(calculationJson))
+                return new List<object>();
+
+            return new List<object> { new CalculationResultsApiResponse { ResponseKind = "CalculationResults", RawJson = calculationJson } };
+        }
+
+        /***************************************************/
         /**** Fallback Methods                          ****/
         /***************************************************/
 
