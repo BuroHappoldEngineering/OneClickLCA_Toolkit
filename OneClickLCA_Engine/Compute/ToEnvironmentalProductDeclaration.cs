@@ -4,41 +4,58 @@
  *
  * Each contributor holds copyright over their respective contributions.
  * The project versioning (Git) records all such contribution source information.
- *                                           
- *                                                                              
- * The BHoM is free software: you can redistribute it and/or modify         
- * it under the terms of the GNU Lesser General Public License as published by  
- * the Free Software Foundation, either version 3.0 of the License, or          
- * (at your option) any later version.                                          
- *                                                                              
- * The BHoM is distributed in the hope that it will be useful,              
- * but WITHOUT ANY WARRANTY; without even the implied warranty of               
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the                 
- * GNU Lesser General Public License for more details.                          
- *                                                                            
- * You should have received a copy of the GNU Lesser General Public License     
- * along with this code. If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>.      
+ *
+ * The BHoM is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3.0 of the License, or
+ * (at your option) any later version.
+ *
+ * The BHoM is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this code. If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>.
  */
 
+using BH.oM.Adapters.OneClickLCA;
+using BH.oM.Base.Attributes;
 using BH.oM.LifeCycleAssessment;
 using BH.oM.LifeCycleAssessment.Fragments;
 using BH.oM.LifeCycleAssessment.MaterialFragments;
 using Module = BH.oM.LifeCycleAssessment.Module;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Reflection;
 using System.Text.Json;
 
-namespace BH.Adapter.OneClickLCA
+namespace BH.Engine.Adapters.OneClickLCA
 {
-    public static partial class Convert
+    public static partial class Compute
     {
+        private static readonly JsonSerializerOptions MaterialsCarbonJsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
         /***************************************************/
         /**** Public Methods                            ****/
         /***************************************************/
 
+        [Description("Creates an EnvironmentalProductDeclaration from raw materials carbon resource document JSON.")]
+        [Input("json", "JSON object for a single resource document from the materials carbon data API.")]
+        [Output("epd", "Environmental product declaration populated from the document.")]
         public static EnvironmentalProductDeclaration ToEnvironmentalProductDeclaration(string json)
         {
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                BH.Engine.Base.Compute.RecordError("Resource document JSON is null or empty.");
+                return null;
+            }
+
             JsonDocument doc;
             try
             {
@@ -52,8 +69,53 @@ namespace BH.Adapter.OneClickLCA
 
             using (doc)
             {
-                return ToEnvironmentalProductDeclaration(doc.RootElement);
+                return EnvironmentalProductDeclarationFromJsonElement(doc.RootElement);
             }
+        }
+
+        [Description("Creates an EnvironmentalProductDeclaration from a typed materials carbon resource document.")]
+        [Input("document", "Resource document deserialized from the materials carbon data API.")]
+        [Output("epd", "Environmental product declaration populated from the document.")]
+        public static EnvironmentalProductDeclaration ToEnvironmentalProductDeclaration(MaterialsCarbonResourceDocument document)
+        {
+            if (document == null)
+            {
+                BH.Engine.Base.Compute.RecordError("Resource document is null.");
+                return null;
+            }
+
+            try
+            {
+                JsonElement element = JsonSerializer.SerializeToElement(document, MaterialsCarbonJsonOptions);
+                return EnvironmentalProductDeclarationFromJsonElement(element);
+            }
+            catch (Exception e)
+            {
+                BH.Engine.Base.Compute.RecordError($"Failed to map resource document to EPD. Error: {e.Message}");
+                return null;
+            }
+        }
+
+        [Description("Creates EnvironmentalProductDeclarations for every hit in a materials carbon search response.")]
+        [Input("response", "Aggregated search response from Pull (MaterialsCarbonDataApiRequest).")]
+        [Output("epds", "One EPD per hit document; entries with null results are omitted.")]
+        public static List<EnvironmentalProductDeclaration> ToEnvironmentalProductDeclarations(MaterialsCarbonDataSearchResponse response)
+        {
+            List<EnvironmentalProductDeclaration> results = new List<EnvironmentalProductDeclaration>();
+            if (response?.Hits == null)
+                return results;
+
+            foreach (MaterialsCarbonSearchHit hit in response.Hits)
+            {
+                if (hit?.Document == null)
+                    continue;
+
+                EnvironmentalProductDeclaration epd = ToEnvironmentalProductDeclaration(hit.Document);
+                if (epd != null)
+                    results.Add(epd);
+            }
+
+            return results;
         }
 
 
@@ -61,11 +123,10 @@ namespace BH.Adapter.OneClickLCA
         /**** Private Methods                           ****/
         /***************************************************/
 
-        private static EnvironmentalProductDeclaration ToEnvironmentalProductDeclaration(JsonElement root)
+        private static EnvironmentalProductDeclaration EnvironmentalProductDeclarationFromJsonElement(JsonElement root)
         {
             EnvironmentalProductDeclaration epd = new EnvironmentalProductDeclaration();
 
-            // Name — prefer the full descriptive name, fall back to English name
             if (root.TryGetProperty("staticFullName", out JsonElement fullName) && fullName.ValueKind != JsonValueKind.Null)
                 epd.Name = fullName.GetString();
             else if (root.TryGetProperty("nameEN", out JsonElement nameEn) && nameEn.ValueKind != JsonValueKind.Null)
@@ -111,8 +172,6 @@ namespace BH.Adapter.OneClickLCA
             if (!root.TryGetProperty("impacts", out JsonElement impacts) || impacts.ValueKind != JsonValueKind.Object)
                 return metrics;
 
-            // Collect indicator values grouped by metric type then by module; first value wins per module
-            // when multiple API keys map to the same metric type (e.g. impactGWP100_kgCO2e and traciGWP_kgCO2e).
             Dictionary<Type, Dictionary<Module, double>> accumulated = new Dictionary<Type, Dictionary<Module, double>>();
 
             foreach (JsonProperty stage in impacts.EnumerateObject())
@@ -198,7 +257,6 @@ namespace BH.Adapter.OneClickLCA
                 hasData = true;
             }
 
-            // environmentDataPeriod may be a number or a string; parse safely
             if (root.TryGetProperty("environmentDataPeriod", out JsonElement dataPeriod) && dataPeriod.ValueKind != JsonValueKind.Null)
             {
                 try
@@ -237,7 +295,6 @@ namespace BH.Adapter.OneClickLCA
                 }
             }
 
-            // serviceLife may be a number or a string; parse safely
             if (root.TryGetProperty("serviceLife", out JsonElement serviceLife) && serviceLife.ValueKind != JsonValueKind.Null)
             {
                 try
@@ -348,11 +405,10 @@ namespace BH.Adapter.OneClickLCA
             { "cuft", QuantityType.Volume },
             { "m",    QuantityType.Length },
             { "ft",   QuantityType.Length },
-            { "item", QuantityType.Item }
+            { "item", QuantityType.Item },
+            { "unit", QuantityType.Item }
         };
 
         /***************************************************/
     }
 }
-
-

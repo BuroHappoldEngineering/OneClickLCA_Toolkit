@@ -21,30 +21,28 @@
 
 using BH.oM.Base;
 using BH.oM.Base.Attributes;
-using BH.oM.Data.Requests;
 using System.ComponentModel;
+using System.Text.Json.Serialization;
 
 namespace BH.oM.Adapters.OneClickLCA
 {
-    [Description("Request the list of projects with associated designs from the OneClick LCA Calculation Results API (GET /projects).")]
-    public class GetProjectsRequest : BHoMObject, IRequest
+    [Description("Echo of search parameters returned by the materials carbon data search API (request_params).")]
+    public class MaterialsCarbonRequestParams : BHoMObject
     {
-        [Description("OAuth2 client identifier used for client credentials authentication.")]
-        public virtual string ClientId { get; set; } = "";
+        [JsonPropertyName("collection_name")]
+        [Description("Search collection name.")]
+        public virtual string CollectionName { get; set; }
 
-        [Description("OAuth2 client secret used for client credentials authentication.")]
-        public virtual string ClientSecret { get; set; } = "";
+        [JsonPropertyName("first_q")]
+        [Description("Initial query string.")]
+        public virtual string FirstQ { get; set; }
 
-        [Description("Page number. Defaults to 1.")]
-        public virtual int Page { get; set; } = 1;
+        [JsonPropertyName("per_page")]
+        [Description("Page size requested.")]
+        public virtual int? PerPage { get; set; }
 
-        [Description("Number of records per page (max 100). Defaults to 20.")]
-        public virtual int Limit { get; set; } = 20;
-
-        [Description("Filter projects updated after this date (UTC). Supported formats: yyyy-MM-dd, M/d/yy, dd.MM.yyyy.")]
-        public virtual string LastUpdatedAfter { get; set; } = "";
-
-        [Description("Maximum number of items to pull when paginating. Defaults to 250.")]
-        public virtual int MaxResults { get; set; } = 250;
+        [JsonPropertyName("q")]
+        [Description("Query string.")]
+        public virtual string Q { get; set; }
     }
 }

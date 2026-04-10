@@ -27,7 +27,7 @@ using System.ComponentModel;
 
 namespace BH.oM.Adapters.OneClickLCA
 {
-    [Description("Request EPD data from the OneClick LCA Materials Carbon Data API. Returns a list of EnvironmentalProductDeclaration objects matched by the provided search criteria.")]
+    [Description("Request resource search from the OneClick LCA Materials Carbon Data API. Pull returns a single MaterialsCarbonDataSearchResponse (hits aggregated across internal pagination). Use Engine Compute ToEnvironmentalProductDeclaration / ToEnvironmentalProductDeclarations to obtain EnvironmentalProductDeclaration objects.")]
     public class MaterialsCarbonDataApiRequest : BHoMObject, IRequest
     {
         /***************************************************/
@@ -52,7 +52,7 @@ namespace BH.oM.Adapters.OneClickLCA
         [Description("Sort expression for ordering results. For example: firstUploadTime:desc or manufacturer:asc. Multiple fields can be comma-separated.")]
         public virtual string SortBy { get; set; } = "";
 
-        [Description("Maximum total number of EPD resources to return. The adapter paginates internally using pages of 250. Defaults to 250.")]
+        [Description("Maximum total number of search hits to return. The adapter paginates internally using pages of up to 250. Defaults to 250.")]
         public virtual int MaxResults { get; set; } = 250;
 
         /***************************************************/
