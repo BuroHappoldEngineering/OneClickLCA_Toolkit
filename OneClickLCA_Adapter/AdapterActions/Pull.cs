@@ -42,6 +42,14 @@ namespace BH.Adapter.OneClickLCA
 {
     public partial class OneClickLCAAdapter : BHoMAdapter
     {
+        private const string CalculationResultsApiBase = "https://oneclicklcaapp.com/results-api";
+
+        private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
         /***************************************************/
         /**** Method Overrides                          ****/
         /***************************************************/
@@ -216,13 +224,11 @@ namespace BH.Adapter.OneClickLCA
             if (token == null)
                 return new List<object>();
 
-            List<string> documents = SearchResources(token, request);
+            MaterialsCarbonDataSearchResponse searchResponse = SearchResources(token, request);
+            if (searchResponse == null || searchResponse.Hits == null || searchResponse.Hits.Count == 0)
+                return new List<object>();
 
-            return documents
-                .Select(d => Convert.ToEnvironmentalProductDeclaration(d))
-                .Where(epd => epd != null)
-                .Cast<object>()
-                .ToList();
+            return new List<object> { searchResponse };
         }
 
         /***************************************************/
@@ -272,18 +278,22 @@ namespace BH.Adapter.OneClickLCA
 
         /***************************************************/
 
-        private List<string> SearchResources(string token, MaterialsCarbonDataApiRequest request)
+        private MaterialsCarbonDataSearchResponse SearchResources(string token, MaterialsCarbonDataApiRequest request)
         {
             const string searchUrl = "https://oneclicklcaapp.com/api/materials-carbon-data/resource/_search";
             const int perPage = 250;
 
-            List<string> documents = new List<string>();
+            MaterialsCarbonDataSearchResponse aggregate = new MaterialsCarbonDataSearchResponse
+            {
+                Hits = new List<MaterialsCarbonSearchHit>()
+            };
+
             int page = 1;
             int totalAvailable = int.MaxValue;
 
-            while (documents.Count < request.MaxResults && documents.Count < totalAvailable)
+            while (aggregate.Hits.Count < request.MaxResults && aggregate.Hits.Count < totalAvailable)
             {
-                int remaining = Math.Min(perPage, request.MaxResults - documents.Count);
+                int remaining = Math.Min(perPage, request.MaxResults - aggregate.Hits.Count);
 
                 Dictionary<string, object> parameters = new Dictionary<string, object>
                 {
@@ -313,33 +323,46 @@ namespace BH.Adapter.OneClickLCA
 
                 try
                 {
-                    using (JsonDocument doc = JsonDocument.Parse(responseJson))
+                    MaterialsCarbonDataSearchResponse pageResponse = JsonSerializer.Deserialize<MaterialsCarbonDataSearchResponse>(responseJson, JsonOptions);
+                    if (pageResponse == null)
+                        break;
+
+                    totalAvailable = pageResponse.Found;
+
+                    if (aggregate.Hits.Count == 0)
                     {
-                        JsonElement root = doc.RootElement;
-
-                        if (root.TryGetProperty("found", out JsonElement found))
-                            totalAvailable = found.GetInt32();
-
-                        if (!root.TryGetProperty("hits", out JsonElement hits) || hits.GetArrayLength() == 0)
-                            break;
-
-                        foreach (JsonElement hit in hits.EnumerateArray())
-                        {
-                            if (hit.TryGetProperty("document", out JsonElement document))
-                                documents.Add(document.GetRawText());
-                        }
+                        aggregate.Found = pageResponse.Found;
+                        aggregate.FacetCounts = pageResponse.FacetCounts ?? new List<JsonElement>();
+                        aggregate.RequestParams = pageResponse.RequestParams;
+                        aggregate.SearchCutoff = pageResponse.SearchCutoff;
+                        aggregate.SearchTimeMs = pageResponse.SearchTimeMs;
                     }
+
+                    if (pageResponse.Hits == null || pageResponse.Hits.Count == 0)
+                        break;
+
+                    foreach (MaterialsCarbonSearchHit hit in pageResponse.Hits)
+                    {
+                        aggregate.Hits.Add(hit);
+                        if (aggregate.Hits.Count >= request.MaxResults)
+                            break;
+                    }
+
+                    aggregate.Page = page;
+
+                    if (pageResponse.Hits.Count < remaining)
+                        break;
+
+                    page++;
                 }
                 catch (JsonException e)
                 {
                     BH.Engine.Base.Compute.RecordError($"Failed to parse search response from OneClick LCA API. Error: {e.Message}");
                     break;
                 }
-
-                page++;
             }
 
-            return documents;
+            return aggregate;
         }
 
 
@@ -347,14 +370,7 @@ namespace BH.Adapter.OneClickLCA
         /**** Private Methods — Calculation Results API ****/
         /***************************************************/
 
-        private const string CalculationResultsApiBase = "https://oneclicklcaapp.com/results-api";
-
-        private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
-        private IEnumerable<object> _Pull(GetProjectsRequest request)
+        private IEnumerable<object> _Pull(ProjectsDataApiRequest request)
         {
             if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
             {
@@ -413,7 +429,7 @@ namespace BH.Adapter.OneClickLCA
 
         /***************************************************/
 
-        private IEnumerable<object> _Pull(GetDictionaryDataRequest request)
+        private IEnumerable<object> _Pull(DictionaryDataApiRequest request)
         {
             if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
             {
@@ -488,7 +504,20 @@ namespace BH.Adapter.OneClickLCA
             if (string.IsNullOrEmpty(calculationJson))
                 return new List<object>();
 
-            return new List<object> { new CalculationResultsApiResponse { ResponseKind = "CalculationResults", RawJson = calculationJson } };
+            try
+            {
+                var response = JsonSerializer.Deserialize<CalculationResultsApiResponse>(calculationJson, JsonOptions);
+                if (response != null)
+                    return new List<object> { response };
+
+            }
+            catch (JsonException e)
+            {
+                BH.Engine.Base.Compute.RecordError($"Failed to deserialize dictionary response: {e.Message}");
+            }
+
+
+            return new List<object>();
         }
 
         /***************************************************/
