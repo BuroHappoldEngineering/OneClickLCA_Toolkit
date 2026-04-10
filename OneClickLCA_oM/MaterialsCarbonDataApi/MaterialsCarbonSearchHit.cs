@@ -21,21 +21,26 @@
 
 using BH.oM.Base;
 using BH.oM.Base.Attributes;
-using BH.oM.Data.Requests;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace BH.oM.Adapters.OneClickLCA
 {
-    [Description("Request dictionary data (tool, category, and rule names) for a design from the OneClick LCA Calculation Results API (GET /calculation-results/dictionary).")]
-    public class GetDictionaryDataRequest : BHoMObject, IRequest
+    [Description("One search hit from the materials carbon data API (document plus optional highlight metadata).")]
+    public class MaterialsCarbonSearchHit : BHoMObject
     {
-        [Description("OAuth2 client identifier used for client credentials authentication.")]
-        public virtual string ClientId { get; set; } = "";
+        [JsonPropertyName("document")]
+        [Description("Resource document payload for this hit.")]
+        public virtual MaterialsCarbonResourceDocument Document { get; set; }
 
-        [Description("OAuth2 client secret used for client credentials authentication.")]
-        public virtual string ClientSecret { get; set; } = "";
+        [JsonPropertyName("highlight")]
+        [Description("Search highlight payload from Typesense (structure varies).")]
+        public virtual JsonElement Highlight { get; set; }
 
-        [Description("Unique identifier for the design (24-character alphanumeric).")]
-        public virtual string DesignId { get; set; } = "";
+        [JsonPropertyName("highlights")]
+        [Description("Per-field highlights when returned by the API.")]
+        public virtual List<JsonElement> Highlights { get; set; } = new List<JsonElement>();
     }
 }
