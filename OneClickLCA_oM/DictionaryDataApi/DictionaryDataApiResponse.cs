@@ -24,7 +24,7 @@ using System.Text.Json.Serialization;
 namespace BH.oM.Adapters.OneClickLCA
 {
     [Description("Response from GET /calculation-results/dictionary: dictionary data for tools, categories, and rules for a design.")]
-    public class DictionaryResponse : BHoMObject
+    public class DictionaryDataApiResponse : BHoMObject
     {
         [JsonPropertyName("warning")]
         [Description("Optional warning notification from the API.")]

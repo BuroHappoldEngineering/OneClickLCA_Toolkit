@@ -458,7 +458,7 @@ namespace BH.Adapter.OneClickLCA
 
             try
             {
-                var response = JsonSerializer.Deserialize<DictionaryResponse>(responseJson, JsonOptions);
+                var response = JsonSerializer.Deserialize<DictionaryDataApiResponse>(responseJson, JsonOptions);
                 if (response != null)
                     return new List<object> { response };
             }
@@ -513,11 +513,74 @@ namespace BH.Adapter.OneClickLCA
             }
             catch (JsonException e)
             {
-                BH.Engine.Base.Compute.RecordError($"Failed to deserialize dictionary response: {e.Message}");
+                BH.Engine.Base.Compute.RecordError($"Failed to deserialize calculation results response: {e.Message}");
             }
 
-
             return new List<object>();
+        }
+
+        /***************************************************/
+
+        private IEnumerable<object> _Pull(CalculationResultsAndDictionaryDataApiRequest request)
+        {
+            if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
+            {
+                BH.Engine.Base.Compute.RecordError("Client ID and Client Secret are required for the OneClick LCA Calculation Results API.");
+                return new List<object>();
+            }
+
+            if (string.IsNullOrEmpty(request.DesignId))
+            {
+                BH.Engine.Base.Compute.RecordError("DesignId is required for CalculationResultsAndDictionaryDataApiRequest.");
+                return new List<object>();
+            }
+
+            if (string.IsNullOrEmpty(request.ToolId))
+            {
+                BH.Engine.Base.Compute.RecordError("ToolId is required for CalculationResultsAndDictionaryDataApiRequest.");
+                return new List<object>();
+            }
+
+            DictionaryDataApiRequest dictionaryRequest = new DictionaryDataApiRequest
+            {
+                ClientId = request.ClientId,
+                ClientSecret = request.ClientSecret,
+                DesignId = request.DesignId
+            };
+
+            CalculationResultsApiRequest calculationRequest = new CalculationResultsApiRequest
+            {
+                ClientId = request.ClientId,
+                ClientSecret = request.ClientSecret,
+                DesignId = request.DesignId,
+                ToolId = request.ToolId,
+                ShowAllCategoriesForTool = request.ShowAllCategoriesForTool
+            };
+
+            CalculationResultsAndDictionaryDataApiResponse combined = new CalculationResultsAndDictionaryDataApiResponse();
+
+            foreach (object item in _Pull(dictionaryRequest))
+            {
+                if (item is DictionaryDataApiResponse dictionaryResponse)
+                {
+                    combined.DictionaryDataApiResponse = dictionaryResponse;
+                    break;
+                }
+            }
+
+            foreach (object item in _Pull(calculationRequest))
+            {
+                if (item is CalculationResultsApiResponse calculationResponse)
+                {
+                    combined.CalculationResultsApiResponse = calculationResponse;
+                    break;
+                }
+            }
+
+            if (combined.DictionaryDataApiResponse == null && combined.CalculationResultsApiResponse == null)
+                return new List<object>();
+
+            return new List<object> { combined };
         }
 
         /***************************************************/
@@ -537,8 +600,5 @@ namespace BH.Adapter.OneClickLCA
         /***************************************************/
     }
 }
-
-
-
 
 
