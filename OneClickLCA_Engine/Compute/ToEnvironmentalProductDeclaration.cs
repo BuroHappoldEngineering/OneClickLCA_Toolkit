@@ -28,19 +28,15 @@ using Module = BH.oM.LifeCycleAssessment.Module;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace BH.Engine.Adapters.OneClickLCA
 {
     public static partial class Compute
     {
-        private static readonly JsonSerializerOptions MaterialsCarbonJsonOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-
         /***************************************************/
         /**** Public Methods                            ****/
         /***************************************************/
@@ -86,8 +82,7 @@ namespace BH.Engine.Adapters.OneClickLCA
 
             try
             {
-                JsonElement element = JsonSerializer.SerializeToElement(document, MaterialsCarbonJsonOptions);
-                return EnvironmentalProductDeclarationFromJsonElement(element);
+                return EnvironmentalProductDeclarationFromResourceDocument(document);
             }
             catch (Exception e)
             {
@@ -123,6 +118,33 @@ namespace BH.Engine.Adapters.OneClickLCA
         /**** Private Methods                           ****/
         /***************************************************/
 
+        private static EnvironmentalProductDeclaration EnvironmentalProductDeclarationFromResourceDocument(MaterialsCarbonResourceDocument document)
+        {
+            EnvironmentalProductDeclaration epd = new EnvironmentalProductDeclaration();
+
+            MaterialsCarbonResourceNaming naming = document.Naming ?? new MaterialsCarbonResourceNaming();
+            if (!string.IsNullOrWhiteSpace(naming.StaticFullName))
+                epd.Name = naming.StaticFullName;
+            else if (!string.IsNullOrWhiteSpace(naming.NameEN))
+                epd.Name = naming.NameEN;
+
+            epd.Type = EPDType.Product;
+            epd.QuantityType = ParseQuantityTypeFromUnit(document.Physical?.UnitForData);
+            epd.EnvironmentalMetrics = ParseEnvironmentalMetricsFromImpacts(document.Impacts);
+
+            EPDDensity densityFragment = ParseDensityFromPhysical(document.Physical, epd.QuantityType);
+            if (densityFragment != null)
+                epd.Fragments.Add(densityFragment);
+
+            AdditionalEPDData additionalData = ParseAdditionalEPDDataFromDocument(document);
+            if (additionalData != null)
+                epd.Fragments.Add(additionalData);
+
+            return epd;
+        }
+
+        /***************************************************/
+
         private static EnvironmentalProductDeclaration EnvironmentalProductDeclarationFromJsonElement(JsonElement root)
         {
             EnvironmentalProductDeclaration epd = new EnvironmentalProductDeclaration();
@@ -149,18 +171,87 @@ namespace BH.Engine.Adapters.OneClickLCA
 
         /***************************************************/
 
+        private static QuantityType ParseQuantityTypeFromUnit(string unitForData)
+        {
+            if (string.IsNullOrWhiteSpace(unitForData))
+                return QuantityType.Undefined;
+
+            string unitString = unitForData.ToLowerInvariant();
+
+            if (m_UnitToQuantityType.TryGetValue(unitString, out QuantityType qt))
+                return qt;
+
+            BH.Engine.Base.Compute.RecordWarning($"Unrecognised unit for data '{unitForData}'. QuantityType set to Undefined.");
+            return QuantityType.Undefined;
+        }
+
+        /***************************************************/
+
         private static QuantityType ParseQuantityType(JsonElement root)
         {
             if (!root.TryGetProperty("unitForData", out JsonElement unit) || unit.ValueKind == JsonValueKind.Null)
                 return QuantityType.Undefined;
 
-            string unitString = unit.GetString()?.ToLowerInvariant();
+            return ParseQuantityTypeFromUnit(unit.GetString());
+        }
 
-            if (m_UnitToQuantityType.TryGetValue(unitString, out QuantityType qt))
-                return qt;
+        /***************************************************/
 
-            BH.Engine.Base.Compute.RecordWarning($"Unrecognised unit for data '{unit.GetString()}'. QuantityType set to Undefined.");
-            return QuantityType.Undefined;
+        private static List<IEnvironmentalMetric> ParseEnvironmentalMetricsFromImpacts(Dictionary<string, MaterialsCarbonImpactModule> impacts)
+        {
+            List<IEnvironmentalMetric> metrics = new List<IEnvironmentalMetric>();
+            if (impacts == null || impacts.Count == 0)
+                return metrics;
+
+            Dictionary<Type, Dictionary<Module, double>> accumulated = new Dictionary<Type, Dictionary<Module, double>>();
+
+            PropertyInfo[] moduleProps = typeof(MaterialsCarbonImpactModule).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.GetCustomAttribute<JsonPropertyNameAttribute>() != null)
+                .ToArray();
+
+            foreach (KeyValuePair<string, MaterialsCarbonImpactModule> stage in impacts)
+            {
+                if (!m_StageToModule.TryGetValue(stage.Key, out Module module))
+                    continue;
+
+                MaterialsCarbonImpactModule mod = stage.Value;
+                if (mod == null)
+                    continue;
+
+                foreach (PropertyInfo prop in moduleProps)
+                {
+                    JsonPropertyNameAttribute jn = prop.GetCustomAttribute<JsonPropertyNameAttribute>();
+                    if (!m_MetricKeyToType.TryGetValue(jn.Name, out Type metricType))
+                        continue;
+
+                    object raw = prop.GetValue(mod);
+                    if (!(raw is double value))
+                        continue;
+
+                    if (!accumulated.ContainsKey(metricType))
+                        accumulated[metricType] = new Dictionary<Module, double>();
+
+                    if (!accumulated[metricType].ContainsKey(module))
+                        accumulated[metricType][module] = value;
+                }
+            }
+
+            foreach (KeyValuePair<Type, Dictionary<Module, double>> kvp in accumulated)
+            {
+                try
+                {
+                    IEnvironmentalMetric metric = (IEnvironmentalMetric)Activator.CreateInstance(kvp.Key);
+                    PropertyInfo indicatorsProperty = kvp.Key.GetProperty("Indicators");
+                    indicatorsProperty.SetValue(metric, kvp.Value);
+                    metrics.Add(metric);
+                }
+                catch (Exception e)
+                {
+                    BH.Engine.Base.Compute.RecordWarning($"Failed to create environmental metric of type {kvp.Key.Name}. Error: {e.Message}");
+                }
+            }
+
+            return metrics;
         }
 
         /***************************************************/
@@ -218,6 +309,20 @@ namespace BH.Engine.Adapters.OneClickLCA
 
         /***************************************************/
 
+        private static EPDDensity ParseDensityFromPhysical(MaterialsCarbonResourcePhysical physical, QuantityType quantityType)
+        {
+            double? density = physical?.Density;
+            if (density.HasValue && density.Value > 0)
+                return new EPDDensity { Density = density.Value };
+
+            if (quantityType == QuantityType.Mass)
+                BH.Engine.Base.Compute.RecordWarning("This EPD has a QuantityType of Mass but no density value was returned by the API. Density is required for downstream LCA calculations.");
+
+            return null;
+        }
+
+        /***************************************************/
+
         private static EPDDensity ParseDensityFragment(JsonElement root, QuantityType quantityType)
         {
             bool hasDensity = root.TryGetProperty("density", out JsonElement densityEl)
@@ -230,6 +335,77 @@ namespace BH.Engine.Adapters.OneClickLCA
                 BH.Engine.Base.Compute.RecordWarning("This EPD has a QuantityType of Mass but no density value was returned by the API. Density is required for downstream LCA calculations.");
 
             return null;
+        }
+
+        /***************************************************/
+
+        private static AdditionalEPDData ParseAdditionalEPDDataFromDocument(MaterialsCarbonResourceDocument document)
+        {
+            MaterialsCarbonResourceIdentifiers ids = document.Identifiers ?? new MaterialsCarbonResourceIdentifiers();
+            MaterialsCarbonResourceOrganisation org = document.Organisation ?? new MaterialsCarbonResourceOrganisation();
+            MaterialsCarbonResourceDataSource source = document.DataSource ?? new MaterialsCarbonResourceDataSource();
+            MaterialsCarbonResourcePhysical physical = document.Physical ?? new MaterialsCarbonResourcePhysical();
+
+            AdditionalEPDData data = new AdditionalEPDData();
+            bool hasData = false;
+
+            if (!string.IsNullOrWhiteSpace(ids.EpdNumber))
+            {
+                data.Id = ids.EpdNumber;
+                hasData = true;
+            }
+
+            if (!string.IsNullOrWhiteSpace(org.Manufacturer))
+            {
+                data.Manufacturer = org.Manufacturer;
+                hasData = true;
+            }
+
+            if (!string.IsNullOrWhiteSpace(org.EpdProgram))
+            {
+                data.Publisher = org.EpdProgram;
+                hasData = true;
+            }
+
+            if (source.EnvironmentDataPeriod.HasValue)
+            {
+                try
+                {
+                    data.ReferenceYear = (int)source.EnvironmentDataPeriod.Value;
+                    hasData = true;
+                }
+                catch (Exception e)
+                {
+                    BH.Engine.Base.Compute.RecordWarning($"Failed to parse environmentDataPeriod. Error: {e.Message}");
+                }
+            }
+
+            if (physical.ServiceLife.HasValue)
+            {
+                try
+                {
+                    data.LifeSpan = (int)physical.ServiceLife.Value;
+                    hasData = true;
+                }
+                catch (Exception e)
+                {
+                    BH.Engine.Base.Compute.RecordWarning($"Failed to parse serviceLife. Error: {e.Message}");
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(source.EnvironmentDataSourceStandard))
+            {
+                data.IndustryStandards = new List<string> { source.EnvironmentDataSourceStandard };
+                hasData = true;
+            }
+
+            if (!string.IsNullOrWhiteSpace(org.ProductDescription))
+            {
+                data.Description = org.ProductDescription;
+                hasData = true;
+            }
+
+            return hasData ? data : null;
         }
 
         /***************************************************/

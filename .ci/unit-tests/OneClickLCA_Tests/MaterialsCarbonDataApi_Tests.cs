@@ -28,7 +28,9 @@ namespace OneClickLCA_Tests
             Assert.That(response.Hits, Is.Not.Null);
             Assert.That(response.Hits.Count, Is.EqualTo(1));
             Assert.That(response.Hits[0].Document, Is.Not.Null);
-            Assert.That(response.Hits[0].Document!.NameEN, Is.EqualTo("Test material"));
+            Assert.That(response.Hits[0].Document!.Naming.NameEN, Is.EqualTo("Test material"));
+            Assert.That(response.Hits[0].Document.Identifiers.EpdNumber, Is.EqualTo("EPD-1"));
+            Assert.That(response.Hits[0].Document.Physical.UnitForData, Is.EqualTo("kg"));
             Assert.That(response.Hits[0].Document.Impacts, Is.Not.Null);
             Assert.That(response.Hits[0].Document.Impacts.ContainsKey("A1-A3"), Is.True);
         }
