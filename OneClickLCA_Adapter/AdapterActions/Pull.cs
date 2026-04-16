@@ -382,12 +382,12 @@ namespace BH.Adapter.OneClickLCA
             if (token == null)
                 return new List<object>();
 
-            var allProjects = new List<object>();
+            List<Project> mergedProjects = new List<Project>();
+            ProjectDataApiResponse aggregate = new ProjectDataApiResponse { Projects = mergedProjects };
             int page = request.Page;
             int limit = Math.Min(100, Math.Max(1, request.Limit));
-            int collected = 0;
 
-            while (collected < request.MaxResults)
+            while (mergedProjects.Count < request.MaxResults)
             {
                 var parameters = new Dictionary<string, object> { { "page", page }, { "limit", limit } };
                 if (!string.IsNullOrEmpty(request.LastUpdatedAfter))
@@ -405,16 +405,26 @@ namespace BH.Adapter.OneClickLCA
 
                 try
                 {
-                    var response = JsonSerializer.Deserialize<ProjectListResponse>(responseJson, JsonOptions);
-                    if (response?.Projects != null)
+                    ProjectDataApiResponse pageResponse = JsonSerializer.Deserialize<ProjectDataApiResponse>(responseJson, JsonOptions);
+                    if (pageResponse?.Projects == null)
+                        break;
+
+                    aggregate.Warning = aggregate.Warning ?? pageResponse.Warning;
+                    aggregate.Info = aggregate.Info ?? pageResponse.Info;
+
+                    foreach (Project project in pageResponse.Projects)
                     {
-                        foreach (Project project in response.Projects)
-                            allProjects.Add(project);
-                        collected += response.Projects.Count;
+                        if (mergedProjects.Count >= request.MaxResults)
+                            break;
+
+                        mergedProjects.Add(project);
                     }
 
-                    if (response?.Pagination == null || page >= response.Pagination.TotalPages || response.Projects?.Count == 0)
+                    aggregate.Pagination = pageResponse.Pagination;
+
+                    if (pageResponse.Pagination == null || page >= pageResponse.Pagination.TotalPages || pageResponse.Projects.Count == 0)
                         break;
+
                     page++;
                 }
                 catch (JsonException e)
@@ -424,10 +434,11 @@ namespace BH.Adapter.OneClickLCA
                 }
             }
 
-            return allProjects;
+            return new List<object> { aggregate };
         }
 
         /***************************************************/
+
 
         private IEnumerable<object> _Pull(DictionaryDataApiRequest request)
         {
@@ -521,67 +532,6 @@ namespace BH.Adapter.OneClickLCA
 
         /***************************************************/
 
-        private IEnumerable<object> _Pull(CalculationResultsAndDictionaryDataApiRequest request)
-        {
-            if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
-            {
-                BH.Engine.Base.Compute.RecordError("Client ID and Client Secret are required for the OneClick LCA Calculation Results API.");
-                return new List<object>();
-            }
-
-            if (string.IsNullOrEmpty(request.DesignId))
-            {
-                BH.Engine.Base.Compute.RecordError("DesignId is required for CalculationResultsAndDictionaryDataApiRequest.");
-                return new List<object>();
-            }
-
-            if (string.IsNullOrEmpty(request.ToolId))
-            {
-                BH.Engine.Base.Compute.RecordError("ToolId is required for CalculationResultsAndDictionaryDataApiRequest.");
-                return new List<object>();
-            }
-
-            DictionaryDataApiRequest dictionaryRequest = new DictionaryDataApiRequest
-            {
-                ClientId = request.ClientId,
-                ClientSecret = request.ClientSecret,
-                DesignId = request.DesignId
-            };
-
-            CalculationResultsApiRequest calculationRequest = new CalculationResultsApiRequest
-            {
-                ClientId = request.ClientId,
-                ClientSecret = request.ClientSecret,
-                DesignId = request.DesignId,
-                ToolId = request.ToolId,
-                ShowAllCategoriesForTool = request.ShowAllCategoriesForTool
-            };
-
-            CalculationResultsAndDictionaryDataApiResponse combined = new CalculationResultsAndDictionaryDataApiResponse();
-
-            foreach (object item in _Pull(dictionaryRequest))
-            {
-                if (item is DictionaryDataApiResponse dictionaryResponse)
-                {
-                    combined.DictionaryDataApiResponse = dictionaryResponse;
-                    break;
-                }
-            }
-
-            foreach (object item in _Pull(calculationRequest))
-            {
-                if (item is CalculationResultsApiResponse calculationResponse)
-                {
-                    combined.CalculationResultsApiResponse = calculationResponse;
-                    break;
-                }
-            }
-
-            if (combined.DictionaryDataApiResponse == null && combined.CalculationResultsApiResponse == null)
-                return new List<object>();
-
-            return new List<object> { combined };
-        }
 
         /***************************************************/
         /**** Fallback Methods                          ****/
