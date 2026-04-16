@@ -34,12 +34,22 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.InteropServices.ComTypes;
+using System.Text.Json;
 
 namespace BH.Adapter.OneClickLCA
 {
     public partial class OneClickLCAAdapter : BHoMAdapter
     {
+        private const string CalculationResultsApiBase = "https://oneclicklcaapp.com/results-api";
+
+        private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
         /***************************************************/
         /**** Method Overrides                          ****/
         /***************************************************/
@@ -51,7 +61,7 @@ namespace BH.Adapter.OneClickLCA
 
 
         /***************************************************/
-        /**** Private Methods                           ****/
+        /**** Private Methods — Excel Report           ****/
         /***************************************************/
 
         private IEnumerable<object> _Pull(ReportRequest request)
@@ -199,6 +209,331 @@ namespace BH.Adapter.OneClickLCA
 
 
         /***************************************************/
+        /**** Private Methods — Carbon Data API        ****/
+        /***************************************************/
+
+        private IEnumerable<object> _Pull(MaterialsCarbonDataApiRequest request)
+        {
+            if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
+            {
+                BH.Engine.Base.Compute.RecordError("Client ID and Client Secret are required for the OneClick LCA Carbon Data API.");
+                return new List<object>();
+            }
+
+            string token = AcquireToken(request.ClientId, request.ClientSecret);
+            if (token == null)
+                return new List<object>();
+
+            MaterialsCarbonDataSearchResponse searchResponse = SearchResources(token, request);
+            if (searchResponse == null || searchResponse.Hits == null || searchResponse.Hits.Count == 0)
+                return new List<object>();
+
+            return new List<object> { searchResponse };
+        }
+
+        /***************************************************/
+
+        private string AcquireToken(string clientId, string clientSecret)
+        {
+            const string tokenUrl = "https://id.oneclicklcaapp.com/realms/oneclicklca/protocol/openid-connect/token";
+
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    // Prepare client credentials form
+                    FormUrlEncodedContent body = new FormUrlEncodedContent(new Dictionary<string, string>
+                    {
+                        { "grant_type", "client_credentials" },
+                        { "client_id", clientId },
+                        { "client_secret", clientSecret }
+                    });
+
+                    HttpResponseMessage response = client.PostAsync(tokenUrl, body).Result;
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        BH.Engine.Base.Compute.RecordError($"Failed to acquire OneClick LCA access token. Response: {(int)response.StatusCode} {response.ReasonPhrase}");
+                        return null;
+                    }
+
+                    string json = response.Content.ReadAsStringAsync().Result;
+
+                    using (JsonDocument doc = JsonDocument.Parse(json))
+                    {
+                        if (doc.RootElement.TryGetProperty("access_token", out JsonElement tokenElement))
+                            return tokenElement.GetString();
+                    }
+
+                    BH.Engine.Base.Compute.RecordError("Failed to extract access token from the OneClick LCA authentication response.");
+                    return null;
+                }
+            }
+            catch (Exception e)
+            {
+                BH.Engine.Base.Compute.RecordError($"Failed to acquire OneClick LCA access token. Error: {e.Message}");
+                return null;
+            }
+        }
+
+        /***************************************************/
+
+        private MaterialsCarbonDataSearchResponse SearchResources(string token, MaterialsCarbonDataApiRequest request)
+        {
+            const string searchUrl = "https://oneclicklcaapp.com/api/materials-carbon-data/resource/_search";
+            const int perPage = 250;
+
+            MaterialsCarbonDataSearchResponse aggregate = new MaterialsCarbonDataSearchResponse
+            {
+                Hits = new List<MaterialsCarbonSearchHit>()
+            };
+
+            int page = 1;
+            int totalAvailable = int.MaxValue;
+
+            while (aggregate.Hits.Count < request.MaxResults && aggregate.Hits.Count < totalAvailable)
+            {
+                int remaining = Math.Min(perPage, request.MaxResults - aggregate.Hits.Count);
+
+                Dictionary<string, object> parameters = new Dictionary<string, object>
+                {
+                    { "q",        string.IsNullOrEmpty(request.SearchQuery) ? "*" : request.SearchQuery },
+                    { "page",     page },
+                    { "per_page", remaining }
+                };
+
+                if (!string.IsNullOrEmpty(request.QueryBy))
+                    parameters["query_by"] = request.QueryBy;
+
+                if (!string.IsNullOrEmpty(request.FilterBy))
+                    parameters["filter_by"] = request.FilterBy;
+
+                if (!string.IsNullOrEmpty(request.SortBy))
+                    parameters["sort_by"] = request.SortBy;
+
+                string responseJson = BH.Engine.Adapters.HTTP.Compute.MakeRequest(new BH.oM.Adapters.HTTP.GetRequest
+                {
+                    BaseUrl = searchUrl,
+                    Headers = new Dictionary<string, object> { { "Authorization", $"Bearer {token}" } },
+                    Parameters = parameters
+                });
+
+                if (responseJson == null)
+                    break;
+
+                try
+                {
+                    MaterialsCarbonDataSearchResponse pageResponse = JsonSerializer.Deserialize<MaterialsCarbonDataSearchResponse>(responseJson, JsonOptions);
+                    if (pageResponse == null)
+                        break;
+
+                    totalAvailable = pageResponse.Found;
+
+                    if (aggregate.Hits.Count == 0)
+                    {
+                        aggregate.Found = pageResponse.Found;
+                        aggregate.FacetCounts = pageResponse.FacetCounts ?? new List<JsonElement>();
+                        aggregate.RequestParams = pageResponse.RequestParams;
+                        aggregate.SearchCutoff = pageResponse.SearchCutoff;
+                        aggregate.SearchTimeMs = pageResponse.SearchTimeMs;
+                    }
+
+                    if (pageResponse.Hits == null || pageResponse.Hits.Count == 0)
+                        break;
+
+                    foreach (MaterialsCarbonSearchHit hit in pageResponse.Hits)
+                    {
+                        aggregate.Hits.Add(hit);
+                        if (aggregate.Hits.Count >= request.MaxResults)
+                            break;
+                    }
+
+                    aggregate.Page = page;
+
+                    if (pageResponse.Hits.Count < remaining)
+                        break;
+
+                    page++;
+                }
+                catch (JsonException e)
+                {
+                    BH.Engine.Base.Compute.RecordError($"Failed to parse search response from OneClick LCA API. Error: {e.Message}");
+                    break;
+                }
+            }
+
+            return aggregate;
+        }
+
+
+        /***************************************************/
+        /**** Private Methods — Calculation Results API ****/
+        /***************************************************/
+
+        private IEnumerable<object> _Pull(ProjectsDataApiRequest request)
+        {
+            if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
+            {
+                BH.Engine.Base.Compute.RecordError("Client ID and Client Secret are required for the OneClick LCA Calculation Results API.");
+                return new List<object>();
+            }
+
+            string token = AcquireToken(request.ClientId, request.ClientSecret);
+            if (token == null)
+                return new List<object>();
+
+            List<Project> mergedProjects = new List<Project>();
+            ProjectDataApiResponse aggregate = new ProjectDataApiResponse { Projects = mergedProjects };
+            int page = request.Page;
+            int limit = Math.Min(100, Math.Max(1, request.Limit));
+
+            while (mergedProjects.Count < request.MaxResults)
+            {
+                var parameters = new Dictionary<string, object> { { "page", page }, { "limit", limit } };
+                if (!string.IsNullOrEmpty(request.LastUpdatedAfter))
+                    parameters["lastUpdatedAfter"] = request.LastUpdatedAfter;
+
+                string responseJson = BH.Engine.Adapters.HTTP.Compute.MakeRequest(new BH.oM.Adapters.HTTP.GetRequest
+                {
+                    BaseUrl = $"{CalculationResultsApiBase}/projects",
+                    Headers = new Dictionary<string, object> { { "Authorization", $"Bearer {token}" } },
+                    Parameters = parameters
+                });
+
+                if (string.IsNullOrEmpty(responseJson))
+                    break;
+
+                try
+                {
+                    ProjectDataApiResponse pageResponse = JsonSerializer.Deserialize<ProjectDataApiResponse>(responseJson, JsonOptions);
+                    if (pageResponse?.Projects == null)
+                        break;
+
+                    aggregate.Warning = aggregate.Warning ?? pageResponse.Warning;
+                    aggregate.Info = aggregate.Info ?? pageResponse.Info;
+
+                    foreach (Project project in pageResponse.Projects)
+                    {
+                        if (mergedProjects.Count >= request.MaxResults)
+                            break;
+
+                        mergedProjects.Add(project);
+                    }
+
+                    aggregate.Pagination = pageResponse.Pagination;
+
+                    if (pageResponse.Pagination == null || page >= pageResponse.Pagination.TotalPages || pageResponse.Projects.Count == 0)
+                        break;
+
+                    page++;
+                }
+                catch (JsonException e)
+                {
+                    BH.Engine.Base.Compute.RecordError($"Failed to deserialize projects response: {e.Message}");
+                    break;
+                }
+            }
+
+            return new List<object> { aggregate };
+        }
+
+        /***************************************************/
+
+
+        private IEnumerable<object> _Pull(DictionaryDataApiRequest request)
+        {
+            if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
+            {
+                BH.Engine.Base.Compute.RecordError("Client ID and Client Secret are required for the OneClick LCA Calculation Results API.");
+                return new List<object>();
+            }
+            if (string.IsNullOrEmpty(request.DesignId))
+            {
+                BH.Engine.Base.Compute.RecordError("DesignId is required for GetDictionaryDataRequest.");
+                return new List<object>();
+            }
+
+            string token = AcquireToken(request.ClientId, request.ClientSecret);
+            if (token == null)
+                return new List<object>();
+
+            string responseJson = BH.Engine.Adapters.HTTP.Compute.MakeRequest(new BH.oM.Adapters.HTTP.GetRequest
+            {
+                BaseUrl = $"{CalculationResultsApiBase}/calculation-results/dictionary",
+                Headers = new Dictionary<string, object> { { "Authorization", $"Bearer {token}" } },
+                Parameters = new Dictionary<string, object> { { "designId", request.DesignId } }
+            });
+
+            if (string.IsNullOrEmpty(responseJson))
+                return new List<object>();
+
+            try
+            {
+                var response = JsonSerializer.Deserialize<DictionaryDataApiResponse>(responseJson, JsonOptions);
+                if (response != null)
+                    return new List<object> { response };
+            }
+            catch (JsonException e)
+            {
+                BH.Engine.Base.Compute.RecordError($"Failed to deserialize dictionary response: {e.Message}");
+            }
+
+            return new List<object>();
+        }
+
+        /***************************************************/
+
+        private IEnumerable<object> _Pull(CalculationResultsApiRequest request)
+        {
+            if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
+            {
+                BH.Engine.Base.Compute.RecordError("Client ID and Client Secret are required for the OneClick LCA Calculation Results API.");
+                return new List<object>();
+            }
+            if (string.IsNullOrEmpty(request.DesignId) || string.IsNullOrEmpty(request.ToolId))
+            {
+                BH.Engine.Base.Compute.RecordError("DesignId and ToolId are required for CalculationResultsApiRequest.");
+                return new List<object>();
+            }
+
+            string token = AcquireToken(request.ClientId, request.ClientSecret);
+            if (token == null)
+                return new List<object>();
+
+            string calculationJson = BH.Engine.Adapters.HTTP.Compute.MakeRequest(new BH.oM.Adapters.HTTP.GetRequest
+            {
+                BaseUrl = $"{CalculationResultsApiBase}/calculation-results",
+                Headers = new Dictionary<string, object> { { "Authorization", $"Bearer {token}" } },
+                Parameters = new Dictionary<string, object>
+                {
+                    { "designId", request.DesignId },
+                    { "toolId", request.ToolId },
+                    { "showAllCategoriesForTool", request.ShowAllCategoriesForTool }
+                }
+            });
+
+            if (string.IsNullOrEmpty(calculationJson))
+                return new List<object>();
+
+            try
+            {
+                var response = JsonSerializer.Deserialize<CalculationResultsApiResponse>(calculationJson, JsonOptions);
+                if (response != null)
+                    return new List<object> { response };
+
+            }
+            catch (JsonException e)
+            {
+                BH.Engine.Base.Compute.RecordError($"Failed to deserialize calculation results response: {e.Message}");
+            }
+
+            return new List<object>();
+        }
+
+        /***************************************************/
+
+
+        /***************************************************/
         /**** Fallback Methods                          ****/
         /***************************************************/
 
@@ -215,8 +550,5 @@ namespace BH.Adapter.OneClickLCA
         /***************************************************/
     }
 }
-
-
-
 
 

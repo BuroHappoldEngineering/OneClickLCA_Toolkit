@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit.Analyzers" Version="3.9.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\OneClickLCA_Adapter\OneClickLCA_Adapter.csproj" />
+    <ProjectReference Include="..\..\..\OneClickLCA_Engine\OneClickLCA_Engine.csproj" />
+    <ProjectReference Include="..\..\..\OneClickLCA_oM\OneClickLCA_oM.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="BHoM">
+      <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\BHoM\Assemblies\BHoM.dll</HintPath>
+    </Reference>
+    <Reference Include="BHoM_Adapter">
+      <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\BHoM\Assemblies\BHoM_Adapter.dll</HintPath>
+    </Reference>
+    <Reference Include="BHoM_Engine">
+      <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\BHoM\Assemblies\BHoM_Engine.dll</HintPath>
+    </Reference>
+    <Reference Include="Data_oM">
+      <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\BHoM\Assemblies\Data_oM.dll</HintPath>
+    </Reference>
+    <Reference Include="Adapter_oM">
+      <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\BHoM\Assemblies\Adapter_oM.dll</HintPath>
+    </Reference>
+    <Reference Include="HTTP_Engine">
+      <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\BHoM\Assemblies\HTTP_Engine.dll</HintPath>
+    </Reference>
+    <Reference Include="HTTP_oM">
+      <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\BHoM\Assemblies\HTTP_oM.dll</HintPath>
+    </Reference>
+    <Reference Include="LifeCycleAssessment_oM">
+      <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\BHoM\Assemblies\LifeCycleAssessment_oM.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="NUnit.Framework" />
+  </ItemGroup>
+
+</Project>
