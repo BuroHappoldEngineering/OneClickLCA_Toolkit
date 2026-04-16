@@ -6,7 +6,7 @@ using BH.oM.LifeCycleAssessment.MaterialFragments;
 
 namespace OneClickLCA_Tests
 {
-    public class Tests
+    public class CalculationsResultsApi_Tests
     {
         private const string clientId = "service_acc_buro_happold";
         private const string clientSecret = "3p0vfSnj1tjvZsZEjHICkYUhVj6GYCAZ";

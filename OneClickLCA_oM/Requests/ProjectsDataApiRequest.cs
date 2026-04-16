@@ -26,7 +26,7 @@ using System.ComponentModel;
 
 namespace BH.oM.Adapters.OneClickLCA
 {
-    [Description("Request the list of projects with associated designs from the OneClick LCA Calculation Results API (GET /projects).")]
+    [Description("Request the list of projects with associated designs from the OneClick LCA Calculation Results API (GET /projects). Pull returns a single ProjectDataApiResponse whose Projects list aggregates pages up to MaxResults.")]
     public class ProjectsDataApiRequest : BHoMObject, IRequest
     {
         [Description("OAuth2 client identifier used for client credentials authentication.")]
