@@ -271,7 +271,7 @@ namespace BH.Adapter.OneClickLCA
             }
             catch (Exception e)
             {
-                BH.Engine.Base.Compute.RecordError($"Failed to acquire OneClick LCA access token. Error: {e.Message}");
+                BH.Engine.Base.Compute.RecordError(e, "Failed to acquire OneClick LCA access token.");
                 return null;
             }
         }
