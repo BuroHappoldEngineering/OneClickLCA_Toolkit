@@ -43,7 +43,7 @@ namespace BH.Engine.Adapters.OneClickLCA
         [Description("Gets the total for each environmental metric, LCA module and RICS category from the provided report.")]
         [Input("report", "OneClick LCA report.")]
         [Input("categoryLevel", "category level to calculate the totals over. If left at 0, the totals will be calculated for all categories found in the input regardless of their level.")]
-        [Output("totals", "Total for each environmental metric, LCA module and RICS category")]
+        [Output("totals", "Total for each environmental metric, LCA module and RICS category.")]
         public static Dictionary<RICSCategory, List<MaterialResult>> TotalPerCategory(this OneClickReport report, int categoryLevel = 0)
         {
             if (report == null)
@@ -57,7 +57,7 @@ namespace BH.Engine.Adapters.OneClickLCA
         [Description("Gets the total for each environmental metric, LCA module and RICS category from the provided set of report entries.")]
         [Input("entries", "OneClick LCA report entries.")]
         [Input("categoryLevel", "category level to calculate the totals over. If left at 0, the totals will be calculated for all categories found in the input regardless of their level.")]
-        [Output("totals", "Total for each environmental metric, LCA module and RICS category")]
+        [Output("totals", "Total for each environmental metric, LCA module and RICS category.")]
         public static Dictionary<RICSCategory, List<MaterialResult>> TotalPerCategory(this List<ReportEntry> entries, int categoryLevel = 0)
         {
             IEnumerable<IGrouping<RICSCategory, ReportEntry>> groups;

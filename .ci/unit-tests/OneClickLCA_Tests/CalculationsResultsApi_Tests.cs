@@ -19,6 +19,7 @@ namespace OneClickLCA_Tests
         private CalculationResultsApiResponse calculationResultsApiResponse;
 
         [SetUp]
+        [Description("Setup method to pull calculation results from One Click LCA API")]
         public void Setup()
         {
             adapter = new OneClickLCAAdapter();
@@ -37,6 +38,7 @@ namespace OneClickLCA_Tests
         }
 
         [Test]
+        [Description("Test that calculation results are pulled successfully from One Click LCA API")]
         public void TestPullCalculationResults()
         {
             Assert.That(calculationResultsApiResponse, Is.Not.Null, "Calculation results response should not be null");
@@ -44,6 +46,7 @@ namespace OneClickLCA_Tests
         }
 
         [Test]
+        [Description("Test that biogenic results are correctly filtered out in the climate change total metric")]
         public void TestBiogenicResultsFilteredOutInClimateChangeTotalMetric()
         {
             Assert.That(calculationResultsApiResponse, Is.Not.Null, "Setup failed: calculation results response is null");

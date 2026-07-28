@@ -28,9 +28,9 @@ namespace BH.oM.Adapters.OneClickLCA
     public class CalculationResultsApiResponse : BHoMObject
     {
         [JsonPropertyName("calculationResults")]
-        public List<CalculationResult> CalculationResults { get; set; }
+        public virtual List<CalculationResult> CalculationResults { get; set; }
 
         [JsonPropertyName("calculationTotalResults")]
-        public List<CalculationTotalResult> CalculationTotalResults { get; set; }
+        public virtual List<CalculationTotalResult> CalculationTotalResults { get; set; }
     }
 }

@@ -12,10 +12,9 @@ namespace BH.Engine.Adapters.OneClickLCA
 {
     public static partial class Compute
     {
-        [Description("Description of the method. Will appear in the UI tooltip.")]
-        [Input("someInput1", "Description of the input. Will appear in the UI tooltip.")]
-        [Input("someInput2", "Description of the input. Will appear in the UI tooltip.")]
-        [Output("outputName", "Description of the output. Will appear in the UI tooltip.")]
+        [Description("Filters out biogenic calculation results from the API response.")]
+        [Input("response", "The API response containing calculation results.")]
+        [Output("filteredResults", "The list of calculation results with biogenic results removed.")]
         public static List<CalculationResult> FilterOutBiogenicCalculationResults(CalculationResultsApiResponse response)
         {
             return response.CalculationResults.Where(l => !l.CalculationRuleId.ToUpper().Contains("BIOGENIC")).ToList();

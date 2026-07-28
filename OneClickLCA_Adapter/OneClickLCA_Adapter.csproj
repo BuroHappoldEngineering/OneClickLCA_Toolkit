@@ -12,6 +12,7 @@
     <RootNamespace>BH.Adapter.OneClickLCA</RootNamespace>
     <FileVersion>6.1.0.0</FileVersion>
 	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+	<Configurations>Debug;Release;Test</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

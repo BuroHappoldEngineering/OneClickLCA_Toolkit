@@ -64,7 +64,7 @@ namespace BH.Adapter.OneClickLCA
         /**** Private Methods — Excel Report           ****/
         /***************************************************/
 
-        private IEnumerable<object> _Pull(ReportRequest request)
+        private IEnumerable<object> Pull(ReportRequest request)
         {
             string fileExtension = Path.GetExtension(request.FileName);
 
@@ -212,7 +212,7 @@ namespace BH.Adapter.OneClickLCA
         /**** Private Methods — Carbon Data API        ****/
         /***************************************************/
 
-        private IEnumerable<object> _Pull(MaterialsCarbonDataApiRequest request)
+        private IEnumerable<object> Pull(MaterialsCarbonDataApiRequest request)
         {
             if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
             {

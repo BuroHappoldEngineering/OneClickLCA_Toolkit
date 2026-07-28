@@ -19,6 +19,7 @@ namespace OneClickLCA_Tests
         };
 
         [Test]
+        [Description("Test that the MaterialsCarbonDataSearchResponse can be deserialized from JSON correctly.")]
         public void MaterialsCarbonSearchJson_Deserializes_ToSearchResponse()
         {
             MaterialsCarbonDataSearchResponse? response = JsonSerializer.Deserialize<MaterialsCarbonDataSearchResponse>(MinimalSearchJson, JsonOptions);
@@ -35,6 +36,7 @@ namespace OneClickLCA_Tests
             Assert.That(response.Hits[0].Document.Impacts.ContainsKey("A1-A3"), Is.True);
         }
 
+        [Description("Test that the Compute.ToEnvironmentalProductDeclarations method correctly builds an EnvironmentalProductDeclaration from a MaterialsCarbonDataSearchResponse.")]
         [Test]
         public void ToEnvironmentalProductDeclarations_BuildsEpdFromSearchResponse()
         {

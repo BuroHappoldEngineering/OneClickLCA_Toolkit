@@ -5,12 +5,12 @@ namespace BH.oM.Adapters.OneClickLCA
     public class CalculationTotalResult
     {
         [JsonPropertyName("calculationRuleId")]
-        public string CalculationRuleId { get; set; }
+        public virtual string CalculationRuleId { get; set; }
 
         [JsonPropertyName("result")]
-        public double Result { get; set; }
+        public virtual double Result { get; set; }
 
         [JsonPropertyName("resultUnit")]
-        public string ResultUnit { get; set; }
+        public virtual string ResultUnit { get; set; }
     }
 }

@@ -6,6 +6,7 @@ namespace OneClickLCA_Tests
     public class DictionaryDataMapping_Tests
     {
         [Test]
+        [Description("Test that MapDictionaryDataByToolId correctly maps DictionaryData to a dictionary of DesignToolDictionaryMapping objects.")]
         public void MapDictionaryDataByToolId_ProducesOneMappingPerToolWithRulesAndCategories()
         {
             DictionaryData data = new DictionaryData
@@ -36,6 +37,7 @@ namespace OneClickLCA_Tests
         }
 
         [Test]
+        [Description("Test that MapDictionaryDataByToolId returns an empty dictionary when given null input.")]
         public void MapDictionaryDataByToolId_NullInput_ReturnsEmptyDictionary()
         {
             Dictionary<string, DesignToolDictionaryMapping> mappings = Compute.MapDictionaryDataByToolId(null!);

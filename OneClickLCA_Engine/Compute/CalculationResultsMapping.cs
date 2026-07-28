@@ -14,10 +14,10 @@ namespace BH.Engine.Adapters.OneClickLCA
     public static partial class Compute
     {
         [Description("Maps calculation results objects to life cycle stage based on their calculation rule id.")]
-        [Input("CalculationResultsApiResponse", "Description of the input. Will appear in the UI tooltip.")]
-        [Input("FilterOutBiogenicResults", "By default, biogenic results are filtered out, set parameter to false to include biogenic results")]
-        [Output("CalculationResults", "Results mapped based on their calculationRuleId")]
-        public static CalculationResultsMapping CalculationResultsMapping(CalculationResultsApiResponse calculationResultsApiResponse, bool filterOutBiogenicResults = false)
+        [Input("calculationResultsApiResponse", "The API response containing calculation results.")]
+        [Input("filterOutBiogenicResults", "By default, biogenic results are filtered out, set parameter to false to include biogenic results.")]
+        [Output("CalculationResults", "Results mapped based on their calculationRuleId.")]
+        public static CalculationResultsMapping CalculationResultsMapping(CalculationResultsApiResponse calculationResultsApiResponse, bool filterOutBiogenicResults = true)
         {
             if (calculationResultsApiResponse == null)
             {
