@@ -19,12 +19,13 @@
  * along with this code. If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>.
  */
 
+using BH.Adapter.OneClickLCA.Objects;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace BH.oM.Adapters.OneClickLCA
+namespace BH.Adapter.OneClickLCA.Converters
 {
     public sealed class MaterialsCarbonResourceDocumentJsonConverter : JsonConverter<MaterialsCarbonResourceDocument>
     {

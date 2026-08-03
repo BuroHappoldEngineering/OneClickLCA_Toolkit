@@ -19,14 +19,16 @@
  * along with this code. If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>.
  */
 
+using BH.Adapter.OneClickLCA.Converters;
 using BH.oM.Base;
 using BH.oM.Base.Attributes;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 
-namespace BH.oM.Adapters.OneClickLCA
+namespace BH.Adapter.OneClickLCA.Objects
 {
+    [JsonConverter(typeof(MaterialsCarbonResourceDocumentJsonConverter))]
     [Description("Resource document from the OneClick LCA materials carbon data search API (nested under each hit). Flat JSON is deserialized into grouped properties.")]
     public class MaterialsCarbonResourceDocument : BHoMObject
     {
