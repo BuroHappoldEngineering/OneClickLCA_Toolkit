@@ -56,7 +56,7 @@ namespace BH.Adapter.OneClickLCA
 
         public override IEnumerable<object> Pull(IRequest request = null, PullType pullOption = PullType.AdapterDefault, ActionConfig actionConfig = null)
         {
-            return _Pull(request as dynamic);
+            return Pull(request as dynamic);
         }
 
 
@@ -370,7 +370,7 @@ namespace BH.Adapter.OneClickLCA
         /**** Private Methods — Calculation Results API ****/
         /***************************************************/
 
-        private IEnumerable<object> _Pull(ProjectsDataApiRequest request)
+        private IEnumerable<object> Pull(ProjectsDataApiRequest request)
         {
             if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
             {
@@ -440,7 +440,7 @@ namespace BH.Adapter.OneClickLCA
         /***************************************************/
 
 
-        private IEnumerable<object> _Pull(DictionaryDataApiRequest request)
+        private IEnumerable<object> Pull(DictionaryDataApiRequest request)
         {
             if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
             {
@@ -483,7 +483,7 @@ namespace BH.Adapter.OneClickLCA
 
         /***************************************************/
 
-        private IEnumerable<object> _Pull(CalculationResultsApiRequest request)
+        private IEnumerable<object> Pull(CalculationResultsApiRequest request)
         {
             if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
             {
@@ -537,7 +537,7 @@ namespace BH.Adapter.OneClickLCA
         /**** Fallback Methods                          ****/
         /***************************************************/
 
-        private IEnumerable<object> _Pull(IRequest request)
+        private IEnumerable<object> Pull(IRequest request)
         {
             if (request == null)
                 BH.Engine.Base.Compute.RecordError($"Please provide a valid request for the Pull to work correctly.");

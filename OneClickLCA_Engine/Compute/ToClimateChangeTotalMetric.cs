@@ -13,7 +13,7 @@ namespace BH.Engine.Adapters.OneClickLCA
     public static partial class Compute
     {
         [Description("Maps calculation results to life cycle stage based on their calculation rule id.")]
-        [Input("calculationResultsApiResponse", "API response from OneClickLCA")]
+        [Input("calculationResultsApiResponse", "API response from OneClickLCA.")]
         [Input("filterOutBiogenicResults", "By default, biogenic results are filtered out, set parameter to false to include biogenic results.")]
         [Output("metric", "Climate Change - Total, measured in kg CO2 eq (Carbon Dioxide equivalent, also referred to as embodied carbon), refers to the total of Biogenic, Land Use and Fossil resources which contribute to global warming. This environmental indicator forms part of an Environmental Product Declaration and should be evaluated based on the Quantity Type stated on the Environmental Product Declaration.")]
         public static ClimateChangeTotalMetric ToClimateChangeTotalMetric(CalculationResultsApiResponse calculationResultsApiResponse, bool filterOutBiogenicResults = false)
