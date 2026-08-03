@@ -5,7 +5,7 @@
     <AssemblyName>OneClickLCA_Adapter</AssemblyName>
     <BaseOutputPath>..\Build\</BaseOutputPath>
     <AssemblyVersion>9.0.0.0</AssemblyVersion>
-    <Description>https://github.com/BHoM/OneClickLCA_Toolkit</Description>
+    <Description>https://github.com/BuroHappoldEngineering/OneClickLCA_Toolkit</Description>
     <Version>5.0.0</Version>
     <Authors>BHoM</Authors>
     <Copyright>Copyright ? https://github.com/BHoM</Copyright>
