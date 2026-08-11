@@ -38,6 +38,8 @@ namespace BH.oM.Adapters.OneClickLCA
         public string Directory { get; set; } = "";
 
         public AdditionalInputs AdditionalInputs { get; set; }
+
+        public string TestProperty { get; set; } = "";
     }
 }
 
