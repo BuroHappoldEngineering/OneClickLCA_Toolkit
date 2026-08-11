@@ -20,17 +20,18 @@
  */
 
 using BH.oM.Base;
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
+using BH.oM.Base.Attributes;
+using System.ComponentModel;
 
 namespace BH.oM.Adapters.OneClickLCA
 {
+    [Description("Container for a single response from the OneClick LCA Calculation Results API. ResponseKind indicates which endpoint returned the data; RawJson holds the response body for parsing.")]
     public class CalculationResultsApiResponse : BHoMObject
     {
-        [JsonPropertyName("calculationResults")]
-        public List<CalculationResult> CalculationResults { get; set; }
+        [Description("Which API operation returned this data: Projects, CalculationResults, or Dictionary.")]
+        public virtual string ResponseKind { get; set; } = "";
 
-        [JsonPropertyName("calculationTotalResults")]
-        public List<CalculationTotalResult> CalculationTotalResults { get; set; }
+        [Description("Raw JSON response body from the API.")]
+        public virtual string RawJson { get; set; } = "";
     }
 }
