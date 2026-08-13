@@ -1,16 +1,13 @@
-﻿using System.Text.Json.Serialization;
+﻿using BH.oM.Base;
 
 namespace BH.oM.Adapters.OneClickLCA
 {
-    public class CalculationTotalResult
+    public class CalculationTotalResult : BHoMObject
     {
-        [JsonPropertyName("calculationRuleId")]
         public virtual string CalculationRuleId { get; set; }
 
-        [JsonPropertyName("result")]
         public virtual double Result { get; set; }
 
-        [JsonPropertyName("resultUnit")]
         public virtual string ResultUnit { get; set; }
     }
 }

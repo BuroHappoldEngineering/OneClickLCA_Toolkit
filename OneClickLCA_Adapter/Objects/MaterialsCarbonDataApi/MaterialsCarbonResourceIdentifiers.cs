@@ -21,10 +21,10 @@ using BH.oM.Base.Attributes;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 
-namespace BH.oM.Adapters.OneClickLCA
+namespace BH.Adapter.OneClickLCA.Objects
 {
     [Description("Resource and document identifiers from a materials carbon resource document (same JSON keys as on the search API document payload).")]
-    public class MaterialsCarbonResourceIdentifiers : BHoMObject
+    internal class MaterialsCarbonResourceIdentifiers : BHoMObject
     {
         [JsonPropertyName("_id")]
         [Description("Search document identifier (_id).")]

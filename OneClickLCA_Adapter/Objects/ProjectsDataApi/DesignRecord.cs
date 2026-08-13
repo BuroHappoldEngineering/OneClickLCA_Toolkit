@@ -20,37 +20,47 @@ using BH.oM.Base;
 using BH.oM.Base.Attributes;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Text.Json.Serialization;
 
-namespace BH.oM.Adapters.OneClickLCA
+namespace BH.Adapter.OneClickLCA.Objects
 {
     [Description("Design associated with a project from the OneClick LCA Calculation Results API.")]
-    public class Design : BHoMObject
+    public class DesignRecord
     {
+        [JsonPropertyName("designId")]
         [Description("Unique identifier of the design (24-character alphanumeric).")]
         public virtual string DesignId { get; set; } = "";
 
+        [JsonPropertyName("name")]
         [Description("Name of the design.")]
-        public override string Name { get; set; } = "";
+        public virtual string Name { get; set; } = "";
 
+        [JsonPropertyName("designType")]
         [Description("Design type (e.g. design, operatingPeriod, carbonDesign).")]
         public virtual string DesignType { get; set; } = "";
 
+        [JsonPropertyName("chosenDesign")]
         [Description("Whether this design is set as the latest status.")]
         public virtual bool ChosenDesign { get; set; }
 
+        [JsonPropertyName("baseline")]
         [Description("Whether this is a baseline design of the project.")]
         public virtual bool Baseline { get; set; }
 
+        [JsonPropertyName("ribaStage")]
         [Description("Stage of construction process (RIBA / AIA stages).")]
         public virtual string RibaStage { get; set; } = "";
 
+        [JsonPropertyName("lastUpdated")]
         [Description("Last updated date and time in ISO 8601 UTC format.")]
         public virtual string LastUpdated { get; set; } = "";
 
+        [JsonPropertyName("createdBy")]
         [Description("User who created the design.")]
-        public virtual BasicUserDetails CreatedBy { get; set; }
+        public virtual BasicUserDetailsRecord CreatedBy { get; set; }
 
+        [JsonPropertyName("lastUpdatedBy")]
         [Description("User who last updated the design.")]
-        public virtual BasicUserDetails LastUpdatedBy { get; set; }
+        public virtual BasicUserDetailsRecord LastUpdatedBy { get; set; }
     }
 }

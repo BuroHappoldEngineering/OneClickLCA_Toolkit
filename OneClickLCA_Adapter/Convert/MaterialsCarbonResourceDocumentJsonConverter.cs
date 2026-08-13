@@ -27,7 +27,7 @@ using System.Text.Json.Serialization;
 
 namespace BH.Adapter.OneClickLCA.Converters
 {
-    public sealed class MaterialsCarbonResourceDocumentJsonConverter : JsonConverter<MaterialsCarbonResourceDocument>
+    internal sealed class MaterialsCarbonResourceDocumentJsonConverter : JsonConverter<MaterialsCarbonResourceDocument>
     {
         /***************************************************/
         /**** Public Methods                            ****/

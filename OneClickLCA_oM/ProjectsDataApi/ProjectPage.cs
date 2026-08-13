@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This file is part of the Buildings and Habitats object Model (BHoM)
  * Copyright (c) 2015 - 2024, the respective contributors. All rights reserved.
  *
@@ -21,24 +21,27 @@
 
 using BH.oM.Base;
 using BH.oM.Base.Attributes;
+using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text.Json.Serialization;
 
 namespace BH.oM.Adapters.OneClickLCA
 {
-    [Description("Notification (info, warning or error) from the OneClick LCA API.")]
-    public class ApiNotification : BHoMObject
+    [Description("Response from GET /projects: list of projects with pagination information. Returned from Pull for projects requests.")]
+    public class ProjectPage : BHoMObject
     {
-        [JsonPropertyName("level")]
-        public virtual string Level { get; set; } = "";
+        [Description("List of projects with associated designs.")]
+        public virtual List<Project> Projects { get; set; } = new List<Project>();
 
-        [JsonPropertyName("code")]
-        public virtual string Code { get; set; } = "";
+        [Description("Current page number.")]
+        public virtual int CurrentPage { get; set; }
 
-        [JsonPropertyName("message")]
-        public virtual string Message { get; set; } = "";
+        [Description("Number of records per page.")]
+        public virtual int AmountPerPage { get; set; }
 
-        [JsonPropertyName("description")]
-        public virtual string Description { get; set; } = "";
+        [Description("Total number of pages.")]
+        public virtual int TotalPages { get; set; }
+
+        [Description("Total number of records.")]
+        public virtual long TotalItems { get; set; }
     }
 }

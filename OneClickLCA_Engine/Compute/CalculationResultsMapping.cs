@@ -8,34 +8,15 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 
-
 namespace BH.Engine.Adapters.OneClickLCA
 {
     public static partial class Compute
     {
         [Description("Maps calculation results objects to life cycle stage based on their calculation rule id.")]
         [Input("calculationResultsApiResponse", "The API response containing calculation results.")]
-        [Input("filterOutBiogenicResults", "By default, biogenic results are filtered out, set parameter to false to include biogenic results.")]
         [Output("CalculationResults", "Results mapped based on their calculationRuleId.")]
-        public static CalculationResultsMapping CalculationResultsMapping(CalculationResultsApiResponse calculationResultsApiResponse, bool filterOutBiogenicResults = true)
+        public static CalculationResultsMapping CalculationResultsMapping(List<CalculationResult> calculationResults)
         {
-            if (calculationResultsApiResponse == null)
-            {
-                BH.Engine.Base.Compute.RecordError("Failed to collect data");
-                return null;
-            }
-
-            List<CalculationResult> calculationResults;
-
-            if (filterOutBiogenicResults)
-            {
-                calculationResults = FilterOutBiogenicCalculationResults(calculationResultsApiResponse);
-            }
-            else
-            {
-                calculationResults = calculationResultsApiResponse.CalculationResults;
-            }
-
             var mappedData = new Dictionary<Module, List<CalculationResult>>();
 
             CalculationResultsMapping calculationResultsMapping = new CalculationResultsMapping();
@@ -67,11 +48,7 @@ namespace BH.Engine.Adapters.OneClickLCA
                 }
             }
 
-
-
             return calculationResultsMapping;
         }
-
-
     }
 }

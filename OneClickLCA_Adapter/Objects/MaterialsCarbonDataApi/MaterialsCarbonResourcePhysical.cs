@@ -21,10 +21,10 @@ using BH.oM.Base.Attributes;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 
-namespace BH.oM.Adapters.OneClickLCA
+namespace BH.Adapter.OneClickLCA.Objects
 {
     [Description("Declared unit and physical properties from a materials carbon resource document (same JSON keys as on the search API document payload).")]
-    public class MaterialsCarbonResourcePhysical : BHoMObject
+    internal class MaterialsCarbonResourcePhysical : BHoMObject
     {
         [JsonPropertyName("unitForData")]
         [Description("Unit for reported data.")]

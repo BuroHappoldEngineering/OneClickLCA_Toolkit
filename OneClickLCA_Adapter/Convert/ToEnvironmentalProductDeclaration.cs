@@ -19,7 +19,6 @@
  * along with this code. If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>.
  */
 
-using BH.oM.Adapters.OneClickLCA;
 using BH.oM.Base.Attributes;
 using BH.oM.LifeCycleAssessment;
 using BH.oM.LifeCycleAssessment.Fragments;
@@ -32,10 +31,11 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using BH.Adapter.OneClickLCA.Objects;
 
-namespace BH.Engine.Adapters.OneClickLCA
+namespace BH.Adapter.OneClickLCA
 {
-    public static partial class Compute
+    public static partial class Convert
     {
         /***************************************************/
         /**** Public Methods                            ****/
@@ -72,7 +72,7 @@ namespace BH.Engine.Adapters.OneClickLCA
         [Description("Creates an EnvironmentalProductDeclaration from a typed materials carbon resource document.")]
         [Input("document", "Resource document deserialized from the materials carbon data API.")]
         [Output("epd", "Environmental product declaration populated from the document.")]
-        public static EnvironmentalProductDeclaration ToEnvironmentalProductDeclaration(MaterialsCarbonResourceDocument document)
+        internal static EnvironmentalProductDeclaration ToEnvironmentalProductDeclaration(MaterialsCarbonResourceDocument document)
         {
             if (document == null)
             {
@@ -94,7 +94,7 @@ namespace BH.Engine.Adapters.OneClickLCA
         [Description("Creates EnvironmentalProductDeclarations for every hit in a materials carbon search response.")]
         [Input("response", "Aggregated search response from Pull (MaterialsCarbonDataApiRequest).")]
         [Output("epds", "One EPD per hit document; entries with null results are omitted.")]
-        public static List<EnvironmentalProductDeclaration> ToEnvironmentalProductDeclarations(MaterialsCarbonDataSearchResponse response)
+        internal static List<EnvironmentalProductDeclaration> ToEnvironmentalProductDeclarations(this MaterialsCarbonDataSearchResponse response)
         {
             List<EnvironmentalProductDeclaration> results = new List<EnvironmentalProductDeclaration>();
             if (response?.Hits == null)

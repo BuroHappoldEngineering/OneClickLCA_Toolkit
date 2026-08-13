@@ -22,10 +22,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 
-namespace BH.oM.Adapters.OneClickLCA
+namespace BH.Adapter.OneClickLCA.Objects
 {
     [Description("Organisation, verification, classification, and product text from a materials carbon resource document (same JSON keys as on the search API document payload).")]
-    public class MaterialsCarbonResourceOrganisation : BHoMObject
+    internal class MaterialsCarbonResourceOrganisation : BHoMObject
     {
         [JsonPropertyName("manufacturer")]
         [Description("Manufacturer.")]

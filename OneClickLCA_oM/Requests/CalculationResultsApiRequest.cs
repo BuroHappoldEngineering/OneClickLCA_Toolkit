@@ -43,5 +43,11 @@ namespace BH.oM.Adapters.OneClickLCA
 
         [Description("When true, include all result categories for the tool including dummy categories not shown on the result page. Defaults to false.")]
         public virtual bool ShowAllCategoriesForTool { get; set; } = false;
+
+        [Description("Whether to include biogenic carbon results when returning calculation results. Defaults to true.")]
+        public virtual bool IncludeBiogenic { get; set; } = true;
+
+        [Description("Whether to include `CalculationTotalResult`s in addition to CalculationResults. Defaults to false.")]
+        public virtual bool IncludeCalculationTotalResults { get; set; } = false;
     }
 }

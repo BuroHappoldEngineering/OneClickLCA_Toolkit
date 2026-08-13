@@ -21,29 +21,24 @@
 
 using BH.oM.Base;
 using BH.oM.Base.Attributes;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 
-namespace BH.oM.Adapters.OneClickLCA
+namespace BH.Adapter.OneClickLCA.Objects
 {
-    [Description("Response from GET /projects: list of projects with pagination and optional notifications. Returned from Pull for projects requests.")]
-    public class ProjectDataApiResponse : BHoMObject
+    [Description("Notification (info, warning or error) from the OneClick LCA API.")]
+    public class ApiNotification : BHoMObject
     {
-        [JsonPropertyName("warning")]
-        [Description("Optional warning notification from the API.")]
-        public virtual ApiNotification Warning { get; set; }
+        [JsonPropertyName("level")]
+        public virtual string Level { get; set; } = "";
 
-        [JsonPropertyName("info")]
-        [Description("Optional info notification from the API.")]
-        public virtual ApiNotification Info { get; set; }
+        [JsonPropertyName("code")]
+        public virtual string Code { get; set; } = "";
 
-        [JsonPropertyName("projects")]
-        [Description("List of projects with associated designs.")]
-        public virtual List<Project> Projects { get; set; } = new List<Project>();
+        [JsonPropertyName("message")]
+        public virtual string Message { get; set; } = "";
 
-        [JsonPropertyName("pagination")]
-        [Description("Pagination metadata from the last page fetched (or the only page).")]
-        public virtual PaginationInfo Pagination { get; set; }
+        [JsonPropertyName("description")]
+        public virtual string Description { get; set; } = "";
     }
 }

@@ -24,10 +24,10 @@ using BH.oM.Base.Attributes;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 
-namespace BH.oM.Adapters.OneClickLCA
+namespace BH.Adapter.OneClickLCA.Objects
 {
     [Description("Declared-unit impact and biogenic storage scalars on a materials carbon resource document (same JSON keys as on the search API document payload).")]
-    public class MaterialsCarbonResourceDeclaredImpacts : BHoMObject
+    internal class MaterialsCarbonResourceDeclaredImpacts : BHoMObject
     {
         [JsonPropertyName("impactGWP100_kgCO2e_biogenic_kg")]
         public virtual double? ImpactGWP100_kgCO2e_biogenic_kg { get; set; }

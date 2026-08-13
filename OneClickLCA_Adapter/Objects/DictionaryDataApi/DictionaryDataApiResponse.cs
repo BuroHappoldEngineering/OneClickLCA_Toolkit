@@ -2,9 +2,6 @@
  * This file is part of the Buildings and Habitats object Model (BHoM)
  * Copyright (c) 2015 - 2024, the respective contributors. All rights reserved.
  *
- * Each contributor holds copyright over their respective contributions.
- * The project versioning (Git) records all such contribution source information.
- *
  * The BHoM is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3.0 of the License, or
@@ -20,17 +17,25 @@
  */
 
 using BH.oM.Base;
-using System.Collections.Generic;
+using BH.oM.Base.Attributes;
+using System.ComponentModel;
 using System.Text.Json.Serialization;
 
-namespace BH.oM.Adapters.OneClickLCA
+namespace BH.Adapter.OneClickLCA.Objects
 {
-    public class CalculationResultsApiResponse : BHoMObject
+    [Description("Response from GET /calculation-results/dictionary: dictionary data for tools, categories, and rules for a design.")]
+    public class DictionaryDataApiResponse : BHoMObject
     {
-        [JsonPropertyName("calculationResults")]
-        public virtual List<CalculationResult> CalculationResults { get; set; }
+        [JsonPropertyName("warning")]
+        [Description("Optional warning notification from the API.")]
+        public virtual ApiNotification Warning { get; set; }
 
-        [JsonPropertyName("calculationTotalResults")]
-        public virtual List<CalculationTotalResult> CalculationTotalResults { get; set; }
+        [JsonPropertyName("info")]
+        [Description("Optional info notification from the API.")]
+        public virtual ApiNotification Info { get; set; }
+
+        [JsonPropertyName("dictionaryData")]
+        [Description("Dictionary data containing designId and toolData.")]
+        public virtual DictionaryData DictionaryData { get; set; }
     }
 }

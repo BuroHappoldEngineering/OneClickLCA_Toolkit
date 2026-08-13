@@ -21,24 +21,29 @@
 
 using BH.oM.Base;
 using BH.oM.Base.Attributes;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 
-namespace BH.oM.Adapters.OneClickLCA
+namespace BH.Adapter.OneClickLCA.Objects
 {
-    [Description("Environmental impact values for one life-cycle module within a materials carbon resource document (nested under impacts).")]
-    public class MaterialsCarbonImpactModule : BHoMObject
+    [Description("Response from GET /projects: list of projects with pagination and optional notifications. Returned from Pull for projects requests.")]
+    public class ProjectDataApiResponse
     {
-        [JsonPropertyName("impactGWP100_kgCO2e")]
-        [Description("Climate change (GWP100) excluding biogenic CO2, kg CO2e per declared unit.")]
-        public virtual double? ImpactGWP100_kgCO2e { get; set; }
+        [JsonPropertyName("warning")]
+        [Description("Optional warning notification from the API.")]
+        public virtual ApiNotification Warning { get; set; }
 
-        [JsonPropertyName("impactGWP100_kgCO2e_total")]
-        [Description("Total climate change (GWP100) including biogenic, kg CO2e per declared unit.")]
-        public virtual double? ImpactGWP100_kgCO2e_total { get; set; }
+        [JsonPropertyName("info")]
+        [Description("Optional info notification from the API.")]
+        public virtual ApiNotification Info { get; set; }
 
-        [JsonPropertyName("traciGWP_kgCO2e")]
-        [Description("TRACI global warming potential, kg CO2e per declared unit.")]
-        public virtual double? TraciGWP_kgCO2e { get; set; }
+        [JsonPropertyName("projects")]
+        [Description("List of projects with associated designs.")]
+        public virtual List<ProjectRecord> Projects { get; set; } = new List<ProjectRecord>();
+
+        [JsonPropertyName("pagination")]
+        [Description("Pagination metadata from the last page fetched (or the only page).")]
+        public virtual PaginationInfo Pagination { get; set; }
     }
 }

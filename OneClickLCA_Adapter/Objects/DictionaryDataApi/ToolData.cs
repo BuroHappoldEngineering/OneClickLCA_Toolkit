@@ -18,20 +18,25 @@
 
 using BH.oM.Base;
 using BH.oM.Base.Attributes;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Text.Json.Serialization;
 
-namespace BH.oM.Adapters.OneClickLCA
+namespace BH.Adapter.OneClickLCA.Objects
 {
-    [Description("User details from the OneClick LCA Calculation Results API (e.g. createdBy, lastUpdatedBy).")]
-    public class BasicUserDetails : BHoMObject
+    [Description("Dictionary data for one tool: mapping of toolId/categoryId/ruleId to display names.")]
+    public class ToolData : BHoMObject
     {
-        [Description("Unique identifier of the user.")]
-        public virtual string UserId { get; set; } = "";
+        [JsonPropertyName("tool")]
+        [Description("Tool identifier to display name.")]
+        public virtual Dictionary<string, string> Tool { get; set; } = new Dictionary<string, string>();
 
-        [Description("Email address of the user.")]
-        public virtual string Email { get; set; } = "";
+        [JsonPropertyName("rules")]
+        [Description("Rule identifier to display name.")]
+        public virtual Dictionary<string, string> Rules { get; set; } = new Dictionary<string, string>();
 
-        [Description("Display name of the user.")]
-        public virtual string Username { get; set; } = "";
+        [JsonPropertyName("categories")]
+        [Description("Category identifier to display name.")]
+        public virtual Dictionary<string, string> Categories { get; set; } = new Dictionary<string, string>();
     }
 }

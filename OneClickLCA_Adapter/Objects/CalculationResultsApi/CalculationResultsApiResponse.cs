@@ -19,30 +19,20 @@
  * along with this code. If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>.
  */
 
+using BH.Adapter.OneClickLCA.Objects;
+using BH.oM.Adapters.OneClickLCA;
 using BH.oM.Base;
-using BH.oM.Base.Attributes;
-using System.ComponentModel;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace BH.oM.Adapters.OneClickLCA
+namespace BH.Adapter.OneClickLCA.Objects
 {
-    [Description("Echo of search parameters returned by the materials carbon data search API (request_params).")]
-    public class MaterialsCarbonRequestParams : BHoMObject
+    public class CalculationResultsApiResponse
     {
-        [JsonPropertyName("collection_name")]
-        [Description("Search collection name.")]
-        public virtual string CollectionName { get; set; }
+        [JsonPropertyName("calculationResults")]
+        public virtual List<CalculationResultRecord> CalculationResults { get; set; }
 
-        [JsonPropertyName("first_q")]
-        [Description("Initial query string.")]
-        public virtual string FirstQ { get; set; }
-
-        [JsonPropertyName("per_page")]
-        [Description("Page size requested.")]
-        public virtual int? PerPage { get; set; }
-
-        [JsonPropertyName("q")]
-        [Description("Query string.")]
-        public virtual string Q { get; set; }
+        [JsonPropertyName("calculationTotalResults")]
+        public virtual List<CalculationTotalResultRecord> CalculationTotalResults { get; set; }
     }
 }

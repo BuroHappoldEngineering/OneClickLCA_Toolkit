@@ -26,10 +26,10 @@ using System.ComponentModel;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace BH.oM.Adapters.OneClickLCA
+namespace BH.Adapter.OneClickLCA.Objects
 {
     [Description("Response from POST materials-carbon-data resource search (one page or aggregated across adapter pagination).")]
-    public class MaterialsCarbonDataSearchResponse : BHoMObject
+    internal class MaterialsCarbonDataSearchResponse : BHoMObject
     {
         [JsonPropertyName("facet_counts")]
         [Description("Facet counts returned by the search service (structure varies).")]

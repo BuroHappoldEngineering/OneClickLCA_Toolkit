@@ -21,21 +21,25 @@ using BH.oM.Base.Attributes;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 
-namespace BH.oM.Adapters.OneClickLCA
+namespace BH.Adapter.OneClickLCA.Objects
 {
-    [Description("Response from GET /calculation-results/dictionary: dictionary data for tools, categories, and rules for a design.")]
-    public class DictionaryDataApiResponse : BHoMObject
+    [Description("Pagination metadata from the OneClick LCA Calculation Results API project list.")]
+    public class PaginationInfo
     {
-        [JsonPropertyName("warning")]
-        [Description("Optional warning notification from the API.")]
-        public virtual ApiNotification Warning { get; set; }
+        [JsonPropertyName("currentPage")]
+        [Description("Current page number.")]
+        public virtual int CurrentPage { get; set; }
 
-        [JsonPropertyName("info")]
-        [Description("Optional info notification from the API.")]
-        public virtual ApiNotification Info { get; set; }
+        [JsonPropertyName("amountPerPage")]
+        [Description("Number of records per page.")]
+        public virtual int AmountPerPage { get; set; }
 
-        [JsonPropertyName("dictionaryData")]
-        [Description("Dictionary data containing designId and toolData.")]
-        public virtual DictionaryData DictionaryData { get; set; }
+        [JsonPropertyName("totalPages")]
+        [Description("Total number of pages.")]
+        public virtual int TotalPages { get; set; }
+
+        [JsonPropertyName("totalItems")]
+        [Description("Total number of records.")]
+        public virtual long TotalItems { get; set; }
     }
 }

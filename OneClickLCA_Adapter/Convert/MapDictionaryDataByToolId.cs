@@ -19,14 +19,15 @@
  * along with this code. If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>.
  */
 
+using BH.Adapter.OneClickLCA.Objects;
 using BH.oM.Adapters.OneClickLCA;
 using BH.oM.Base.Attributes;
 using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace BH.Engine.Adapters.OneClickLCA
+namespace BH.Adapter.OneClickLCA
 {
-    public static partial class Compute
+    public static partial class Convert
     {
         /***************************************************/
         /**** Public Methods                            ****/
@@ -35,7 +36,7 @@ namespace BH.Engine.Adapters.OneClickLCA
         [Description("Maps calculation-results dictionary payload to a lookup of tool id to rule and category display name maps.")]
         [Input("dictionaryData", "Dictionary data from GET /calculation-results/dictionary (DictionaryResponse.DictionaryData).")]
         [Output("mappingsByToolId", "Tool id to DesignToolDictionaryMapping; empty if dictionaryData is null or has no tool entries. Duplicate tool ids overwrite earlier entries with a warning.")]
-        public static Dictionary<string, DesignToolDictionaryMapping> MapDictionaryDataByToolId(DictionaryData dictionaryData)
+        public static Dictionary<string, DesignToolDictionaryMapping> MapDictionaryDataByToolId(this DictionaryData dictionaryData)
         {
             Dictionary<string, DesignToolDictionaryMapping> results = new Dictionary<string, DesignToolDictionaryMapping>();
 

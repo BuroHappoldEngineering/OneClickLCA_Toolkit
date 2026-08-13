@@ -22,21 +22,17 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 
-namespace BH.oM.Adapters.OneClickLCA
+namespace BH.Adapter.OneClickLCA.Objects
 {
-    [Description("Dictionary data for one tool: mapping of toolId/categoryId/ruleId to display names.")]
-    public class ToolData : BHoMObject
+    [Description("Dictionary data for a design: designId and per-tool mappings of tool/category/rule names.")]
+    public class DictionaryData : BHoMObject
     {
-        [JsonPropertyName("tool")]
-        [Description("Tool identifier to display name.")]
-        public virtual Dictionary<string, string> Tool { get; set; } = new Dictionary<string, string>();
+        [JsonPropertyName("designId")]
+        [Description("Unique identifier for the design.")]
+        public virtual string DesignId { get; set; } = "";
 
-        [JsonPropertyName("rules")]
-        [Description("Rule identifier to display name.")]
-        public virtual Dictionary<string, string> Rules { get; set; } = new Dictionary<string, string>();
-
-        [JsonPropertyName("categories")]
-        [Description("Category identifier to display name.")]
-        public virtual Dictionary<string, string> Categories { get; set; } = new Dictionary<string, string>();
+        [JsonPropertyName("toolData")]
+        [Description("Per-tool dictionary data (tool, rules, categories).")]
+        public virtual List<ToolData> ToolData { get; set; } = new List<ToolData>();
     }
 }

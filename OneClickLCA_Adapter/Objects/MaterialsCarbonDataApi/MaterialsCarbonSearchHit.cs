@@ -26,10 +26,10 @@ using System.ComponentModel;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace BH.oM.Adapters.OneClickLCA
+namespace BH.Adapter.OneClickLCA.Objects
 {
     [Description("One search hit from the materials carbon data API (document plus optional highlight metadata).")]
-    public class MaterialsCarbonSearchHit : BHoMObject
+    internal class MaterialsCarbonSearchHit : BHoMObject
     {
         [JsonPropertyName("document")]
         [Description("Resource document payload for this hit.")]

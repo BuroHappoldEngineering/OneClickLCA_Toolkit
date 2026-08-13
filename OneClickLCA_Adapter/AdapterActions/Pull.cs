@@ -22,7 +22,9 @@
 
 using BH.Adapter;
 using BH.Adapter.Excel;
+using BH.Adapter.OneClickLCA.Objects;
 using BH.Engine.Adapter;
+using BH.Engine.Adapters.OneClickLCA;
 using BH.Engine.Base;
 using BH.oM.Adapter;
 using BH.oM.Adapters.Excel;
@@ -59,9 +61,8 @@ namespace BH.Adapter.OneClickLCA
             return Pull(request as dynamic);
         }
 
-
         /***************************************************/
-        /**** Private Methods — Excel Report           ****/
+        /**** Private Methods — Excel Report            ****/
         /***************************************************/
 
         private IEnumerable<object> Pull(ReportRequest request)
@@ -207,9 +208,8 @@ namespace BH.Adapter.OneClickLCA
             return keys.Zip(values, (string k, object v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
         }
 
-
         /***************************************************/
-        /**** Private Methods — Carbon Data API        ****/
+        /**** Private Methods — Carbon Data API         ****/
         /***************************************************/
 
         private IEnumerable<object> Pull(MaterialsCarbonDataApiRequest request)
@@ -228,7 +228,9 @@ namespace BH.Adapter.OneClickLCA
             if (searchResponse == null || searchResponse.Hits == null || searchResponse.Hits.Count == 0)
                 return new List<object>();
 
-            return new List<object> { searchResponse };
+            IEnumerable<object> epds = searchResponse.ToEnvironmentalProductDeclarations();
+
+            return epds;
         }
 
         /***************************************************/
@@ -365,7 +367,6 @@ namespace BH.Adapter.OneClickLCA
             return aggregate;
         }
 
-
         /***************************************************/
         /**** Private Methods — Calculation Results API ****/
         /***************************************************/
@@ -382,7 +383,7 @@ namespace BH.Adapter.OneClickLCA
             if (token == null)
                 return new List<object>();
 
-            List<Project> mergedProjects = new List<Project>();
+            List<ProjectRecord> mergedProjects = new List<ProjectRecord>();
             ProjectDataApiResponse aggregate = new ProjectDataApiResponse { Projects = mergedProjects };
             int page = request.Page;
             int limit = Math.Min(100, Math.Max(1, request.Limit));
@@ -412,7 +413,7 @@ namespace BH.Adapter.OneClickLCA
                     aggregate.Warning = aggregate.Warning ?? pageResponse.Warning;
                     aggregate.Info = aggregate.Info ?? pageResponse.Info;
 
-                    foreach (Project project in pageResponse.Projects)
+                    foreach (ProjectRecord project in pageResponse.Projects)
                     {
                         if (mergedProjects.Count >= request.MaxResults)
                             break;
@@ -434,11 +435,22 @@ namespace BH.Adapter.OneClickLCA
                 }
             }
 
-            return new List<object> { aggregate };
+            //TODO: Record warnings and notes from `ApiNotification`s.
+            //pseudocode: foreach (warning in aggregate.Warnings) { RecordWarning(warning.Message); }
+
+            ProjectPage projectPage = new ProjectPage()
+            {
+                Projects = aggregate.Projects.Select(x => x.FromAPI()).ToList(),
+                AmountPerPage = aggregate.Pagination.AmountPerPage,
+                CurrentPage = aggregate.Pagination.CurrentPage,
+                TotalItems = aggregate.Pagination.TotalItems,
+                TotalPages = aggregate.Pagination.TotalPages,
+            };
+
+            return new List<object> { projectPage };
         }
 
         /***************************************************/
-
 
         private IEnumerable<object> Pull(DictionaryDataApiRequest request)
         {
@@ -467,18 +479,23 @@ namespace BH.Adapter.OneClickLCA
             if (string.IsNullOrEmpty(responseJson))
                 return new List<object>();
 
+            DictionaryDataApiResponse response = null;
+
             try
             {
-                var response = JsonSerializer.Deserialize<DictionaryDataApiResponse>(responseJson, JsonOptions);
-                if (response != null)
-                    return new List<object> { response };
+                response = JsonSerializer.Deserialize<DictionaryDataApiResponse>(responseJson, JsonOptions);
             }
             catch (JsonException e)
             {
                 BH.Engine.Base.Compute.RecordError($"Failed to deserialize dictionary response: {e.Message}");
             }
 
-            return new List<object>();
+            //TODO: Record warnings and notes from `ApiNotification`s.
+            //pseudocode: foreach (warning in aggregate.Warnings) { RecordWarning(warning.Message); }
+
+            Dictionary<string, DesignToolDictionaryMapping> map = response.DictionaryData.MapDictionaryDataByToolId();
+
+            return new List<object>() { map };
         }
 
         /***************************************************/
@@ -513,25 +530,37 @@ namespace BH.Adapter.OneClickLCA
             });
 
             if (string.IsNullOrEmpty(calculationJson))
+            {
+                BH.Engine.Base.Compute.RecordError("Response after requesting the calculation results was empty. Did you get the request parameters correct?");
                 return new List<object>();
+            }
+
+            CalculationResultsApiResponse response = null;
 
             try
             {
-                var response = JsonSerializer.Deserialize<CalculationResultsApiResponse>(calculationJson, JsonOptions);
-                if (response != null)
-                    return new List<object> { response };
-
+                response = JsonSerializer.Deserialize<CalculationResultsApiResponse>(calculationJson, JsonOptions);
             }
             catch (JsonException e)
             {
                 BH.Engine.Base.Compute.RecordError($"Failed to deserialize calculation results response: {e.Message}");
+                return new List<object>();
             }
 
-            return new List<object>();
+            List<IBHoMObject> objs = new List<IBHoMObject>();
+
+            IEnumerable<CalculationResult> results = response.CalculationResults.Select(x => x.FromAPI());
+
+            if (!request.IncludeBiogenic)
+                results = results.FilterNonBiogenicCalculationResults();
+
+            if (request.IncludeCalculationTotalResults)
+                objs.AddRange(response.CalculationTotalResults.Select(x => x.FromAPI()));
+
+            objs.AddRange(results);
+
+            return objs;
         }
-
-        /***************************************************/
-
 
         /***************************************************/
         /**** Fallback Methods                          ****/

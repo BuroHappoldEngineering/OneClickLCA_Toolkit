@@ -2,6 +2,9 @@
  * This file is part of the Buildings and Habitats object Model (BHoM)
  * Copyright (c) 2015 - 2024, the respective contributors. All rights reserved.
  *
+ * Each contributor holds copyright over their respective contributions.
+ * The project versioning (Git) records all such contribution source information.
+ *
  * The BHoM is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3.0 of the License, or
@@ -21,25 +24,25 @@ using BH.oM.Base.Attributes;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 
-namespace BH.oM.Adapters.OneClickLCA
+namespace BH.Adapter.OneClickLCA.Objects
 {
-    [Description("Pagination metadata from the OneClick LCA Calculation Results API project list.")]
-    public class PaginationInfo : BHoMObject
+    [Description("Echo of search parameters returned by the materials carbon data search API (request_params).")]
+    internal class MaterialsCarbonRequestParams : BHoMObject
     {
-        [JsonPropertyName("currentPage")]
-        [Description("Current page number.")]
-        public virtual int CurrentPage { get; set; }
+        [JsonPropertyName("collection_name")]
+        [Description("Search collection name.")]
+        public virtual string CollectionName { get; set; }
 
-        [JsonPropertyName("amountPerPage")]
-        [Description("Number of records per page.")]
-        public virtual int AmountPerPage { get; set; }
+        [JsonPropertyName("first_q")]
+        [Description("Initial query string.")]
+        public virtual string FirstQ { get; set; }
 
-        [JsonPropertyName("totalPages")]
-        [Description("Total number of pages.")]
-        public virtual int TotalPages { get; set; }
+        [JsonPropertyName("per_page")]
+        [Description("Page size requested.")]
+        public virtual int? PerPage { get; set; }
 
-        [JsonPropertyName("totalItems")]
-        [Description("Total number of records.")]
-        public virtual long TotalItems { get; set; }
+        [JsonPropertyName("q")]
+        [Description("Query string.")]
+        public virtual string Q { get; set; }
     }
 }

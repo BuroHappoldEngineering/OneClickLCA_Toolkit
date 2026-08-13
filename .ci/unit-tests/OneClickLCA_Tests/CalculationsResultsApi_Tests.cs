@@ -1,4 +1,5 @@
 using BH.Adapter.OneClickLCA;
+using BH.Adapter.OneClickLCA.Objects.CalculationResultsApi;
 using BH.Engine.Adapters.OneClickLCA;
 using BH.oM.Adapters.OneClickLCA;
 using BH.oM.LifeCycleAssessment;

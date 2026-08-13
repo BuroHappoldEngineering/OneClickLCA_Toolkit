@@ -21,10 +21,10 @@ using BH.oM.Base.Attributes;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 
-namespace BH.oM.Adapters.OneClickLCA
+namespace BH.Adapter.OneClickLCA.Objects
 {
     [Description("Data source, programme, and lifecycle metadata from a materials carbon resource document (same JSON keys as on the search API document payload).")]
-    public class MaterialsCarbonResourceDataSource : BHoMObject
+    internal class MaterialsCarbonResourceDataSource : BHoMObject
     {
         [JsonPropertyName("environmentDataSource")]
         [Description("Environment data source.")]
