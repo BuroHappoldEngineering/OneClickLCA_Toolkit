@@ -18,6 +18,7 @@
   <ItemGroup>
     <PackageReference Include="ExcelDataReader" Version="3.7.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+	<PackageReference Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
 
   <ItemGroup>
@@ -93,16 +94,6 @@
     </Reference>
     <Reference Include="HTTP_oM">
       <HintPath>$(ProgramData)\BHoM\Assemblies\HTTP_oM.dll</HintPath>
-      <Private>false</Private>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="System.Text.Json">
-      <HintPath>$(ProgramData)\BHoM\Assemblies\System.Text.Json.dll</HintPath>
-      <Private>false</Private>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="System.Memory">
-      <HintPath>$(ProgramData)\BHoM\Assemblies\System.Memory.dll</HintPath>
       <Private>false</Private>
       <SpecificVersion>false</SpecificVersion>
     </Reference>
