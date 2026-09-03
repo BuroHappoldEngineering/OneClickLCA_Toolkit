@@ -1,6 +1,10 @@
 using BH.Engine.Adapters.OneClickLCA;
 using BH.oM.Adapters.OneClickLCA;
 using System.Text.Json;
+using BH.Adapter.OneClickLCA;
+using BH.oM.LifeCycleAssessment.MaterialFragments;
+using BH.oM.LifeCycleAssessment;
+using BH.oM.LifeCycleAssessment.Fragments;
 
 namespace OneClickLCA_Tests
 {
@@ -19,37 +23,58 @@ namespace OneClickLCA_Tests
         };
 
         [Test]
-        [Description("Test that the MaterialsCarbonDataSearchResponse can be deserialized from JSON correctly.")]
-        public void MaterialsCarbonSearchJson_Deserializes_ToSearchResponse()
+        [Description("Test that a materials-carbon document extracted from a search response can be converted to an EPD using the public converter.")]
+        public void MaterialsCarbonDocumentJson_Converts_ToEpd()
         {
-            MaterialsCarbonDataSearchResponse? response = JsonSerializer.Deserialize<MaterialsCarbonDataSearchResponse>(MinimalSearchJson, JsonOptions);
+            using JsonDocument doc = JsonDocument.Parse(MinimalSearchJson);
+            JsonElement documentElement = doc.RootElement.GetProperty("hits")[0].GetProperty("document");
 
-            Assert.That(response, Is.Not.Null);
-            Assert.That(response!.Found, Is.EqualTo(1));
-            Assert.That(response.Hits, Is.Not.Null);
-            Assert.That(response.Hits.Count, Is.EqualTo(1));
-            Assert.That(response.Hits[0].Document, Is.Not.Null);
-            Assert.That(response.Hits[0].Document!.Naming.NameEN, Is.EqualTo("Test material"));
-            Assert.That(response.Hits[0].Document.Identifiers.EpdNumber, Is.EqualTo("EPD-1"));
-            Assert.That(response.Hits[0].Document.Physical.UnitForData, Is.EqualTo("kg"));
-            Assert.That(response.Hits[0].Document.Impacts, Is.Not.Null);
-            Assert.That(response.Hits[0].Document.Impacts.ContainsKey("A1-A3"), Is.True);
+            string documentJson = documentElement.GetRawText();
+
+            var epd = BH.Adapter.OneClickLCA.Convert.ToEnvironmentalProductDeclaration(documentJson);
+
+            Assert.That(epd, Is.Not.Null);
+            Assert.That(epd!.Name, Is.EqualTo("Test material"));
+            Assert.That(epd.EnvironmentalMetrics, Is.Not.Null);
+            Assert.That(epd.EnvironmentalMetrics.Count, Is.GreaterThan(0));
         }
 
-        [Description("Test that the Compute.ToEnvironmentalProductDeclarations method correctly builds an EnvironmentalProductDeclaration from a MaterialsCarbonDataSearchResponse.")]
+        [Description("Test that the public converter returns null for invalid input and produces expected EPD for valid document JSON.")]
         [Test]
-        public void ToEnvironmentalProductDeclarations_BuildsEpdFromSearchResponse()
+        public void ToEnvironmentalProductDeclarationPublicConverterBehaviour()
         {
-            MaterialsCarbonDataSearchResponse? response = JsonSerializer.Deserialize<MaterialsCarbonDataSearchResponse>(MinimalSearchJson, JsonOptions);
-            Assert.That(response, Is.Not.Null);
+            // Null or empty input should return null
+            var nullResult = BH.Adapter.OneClickLCA.Convert.ToEnvironmentalProductDeclaration((string)null);
+            Assert.That(nullResult, Is.Null);
 
-            var epds = Compute.ToEnvironmentalProductDeclarations(response!);
+            var emptyResult = BH.Adapter.OneClickLCA.Convert.ToEnvironmentalProductDeclaration(string.Empty);
+            Assert.That(emptyResult, Is.Null);
 
-            Assert.That(epds, Is.Not.Null);
-            Assert.That(epds.Count, Is.EqualTo(1));
-            Assert.That(epds[0].Name, Is.EqualTo("Test material"));
-            Assert.That(epds[0].EnvironmentalMetrics, Is.Not.Null);
-            Assert.That(epds[0].EnvironmentalMetrics.Count, Is.GreaterThan(0));
+            // Valid document JSON produces an EPD
+            using JsonDocument doc = JsonDocument.Parse(MinimalSearchJson);
+            JsonElement documentElement = doc.RootElement.GetProperty("hits")[0].GetProperty("document");
+            string documentJson = documentElement.GetRawText();
+
+            var epd = BH.Adapter.OneClickLCA.Convert.ToEnvironmentalProductDeclaration(documentJson);
+            Assert.That(epd, Is.Not.Null);
+            Assert.That(epd!.Name, Is.EqualTo("Test material"));
+            Assert.That(epd.EnvironmentalMetrics, Is.Not.Null);
+            Assert.That(epd.EnvironmentalMetrics.Count, Is.GreaterThan(0));
+        }
+
+        [Test]
+        [Description("Test that the Convert.ToEnvironmentalProductDeclaration method correctly builds an EnvironmentalProductDeclaration from a document JSON.")]
+        public void ConvertToEnvironmentalProductDeclaration_BuildsEpdFromDocumentJson()
+        {
+            var doc = JsonDocument.Parse(MinimalSearchJson);
+            var documentElement = doc.RootElement.GetProperty("hits")[0].GetProperty("document");
+            string documentJson = documentElement.GetRawText();
+
+            var epd = BH.Adapter.OneClickLCA.Convert.ToEnvironmentalProductDeclaration(documentJson);
+
+            Assert.That(epd, Is.Not.Null);
+            Assert.That(epd.Name, Is.EqualTo("Test material"));
+            Assert.That(epd.EnvironmentalMetrics, Is.Not.Null);
         }
     }
 }

@@ -1,5 +1,7 @@
+using BH.Adapter.OneClickLCA.Objects;
 using BH.Engine.Adapters.OneClickLCA;
 using BH.oM.Adapters.OneClickLCA;
+using BH.Adapter.OneClickLCA;
 
 namespace OneClickLCA_Tests
 {
@@ -9,7 +11,7 @@ namespace OneClickLCA_Tests
         [Description("Test that MapDictionaryDataByToolId correctly maps DictionaryData to a dictionary of DesignToolDictionaryMapping objects.")]
         public void MapDictionaryDataByToolId_ProducesOneMappingPerToolWithRulesAndCategories()
         {
-            DictionaryData data = new DictionaryData
+            DictionaryData dictionaryData = new DictionaryData
             {
                 DesignId = "design-1",
                 ToolData = new List<ToolData>
@@ -23,7 +25,7 @@ namespace OneClickLCA_Tests
                 }
             };
 
-            Dictionary<string, DesignToolDictionaryMapping> mappings = Compute.MapDictionaryDataByToolId(data);
+            Dictionary<string, DesignToolDictionaryMapping> mappings = dictionaryData.MapDictionaryDataByToolId();
 
             Assert.That(mappings, Is.Not.Null);
             Assert.That(mappings.Count, Is.EqualTo(1));
@@ -40,7 +42,8 @@ namespace OneClickLCA_Tests
         [Description("Test that MapDictionaryDataByToolId returns an empty dictionary when given null input.")]
         public void MapDictionaryDataByToolId_NullInput_ReturnsEmptyDictionary()
         {
-            Dictionary<string, DesignToolDictionaryMapping> mappings = Compute.MapDictionaryDataByToolId(null!);
+            DictionaryData dictionaryData = null!;
+            Dictionary<string, DesignToolDictionaryMapping> mappings = dictionaryData.MapDictionaryDataByToolId();
             Assert.That(mappings, Is.Not.Null);
             Assert.That(mappings.Count, Is.EqualTo(0));
         }

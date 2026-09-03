@@ -52,7 +52,7 @@ namespace OneClickLCA_Tests
         {
             Assert.That(calculationResults, Is.Not.Null, "Setup failed: calculation results response is null");
 
-            ClimateChangeTotalMetric metricsWithFilter =   Compute.ClimateChangeTotalMetric((List<CalculationResult>)calculationResults);
+            ClimateChangeTotalMetric metricsWithFilter = Compute.ClimateChangeTotalMetric((List<CalculationResult>)calculationResults);
             ClimateChangeTotalMetric metricsWithoutFilter = Compute.ClimateChangeTotalMetric((List<CalculationResult>)calculationResults);
 
             Assert.That(metricsWithFilter, Is.Not.Null, "Metrics with filter should not be null");
