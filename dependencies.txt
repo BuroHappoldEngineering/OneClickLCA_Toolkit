@@ -3,3 +3,4 @@ BHoM/BHoM_Engine
 BHoM/BHoM_Adapter
 BHoM/LifeCycleAssessment_Toolkit
 BHoM/Excel_Toolkit
+BHoM/HTTP_Toolkit

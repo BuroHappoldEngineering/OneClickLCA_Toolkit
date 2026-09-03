@@ -31,7 +31,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
 
 namespace BH.Engine.Adapters.OneClickLCA
 {
@@ -44,7 +43,7 @@ namespace BH.Engine.Adapters.OneClickLCA
         [Description("Gets the total for each environmental metric, LCA module and RICS category from the provided report.")]
         [Input("report", "OneClick LCA report.")]
         [Input("categoryLevel", "category level to calculate the totals over. If left at 0, the totals will be calculated for all categories found in the input regardless of their level.")]
-        [Output("totals", "Total for each environmental metric, LCA module and RICS category")]
+        [Output("totals", "Total for each environmental metric, LCA module and RICS category.")]
         public static Dictionary<RICSCategory, List<MaterialResult>> TotalPerCategory(this OneClickReport report, int categoryLevel = 0)
         {
             if (report == null)
@@ -58,7 +57,7 @@ namespace BH.Engine.Adapters.OneClickLCA
         [Description("Gets the total for each environmental metric, LCA module and RICS category from the provided set of report entries.")]
         [Input("entries", "OneClick LCA report entries.")]
         [Input("categoryLevel", "category level to calculate the totals over. If left at 0, the totals will be calculated for all categories found in the input regardless of their level.")]
-        [Output("totals", "Total for each environmental metric, LCA module and RICS category")]
+        [Output("totals", "Total for each environmental metric, LCA module and RICS category.")]
         public static Dictionary<RICSCategory, List<MaterialResult>> TotalPerCategory(this List<ReportEntry> entries, int categoryLevel = 0)
         {
             IEnumerable<IGrouping<RICSCategory, ReportEntry>> groups;
@@ -82,40 +81,23 @@ namespace BH.Engine.Adapters.OneClickLCA
 
         private static MaterialResult GetTotal(this IEnumerable<MaterialResult> metrics, Type type)
         {
-            return BH.Engine.LifeCycleAssessment.Create.MaterialResult(type, "", "", new List<double> {
-                GetTotal(metrics.Select(x => x.A1)),
-                GetTotal(metrics.Select(x => x.A2)),
-                GetTotal(metrics.Select(x => x.A3)),
-                GetTotal(metrics.Select(x => x.A1toA3)),
-                GetTotal(metrics.Select(x => x.A4)),
-                GetTotal(metrics.Select(x => x.A5)),
-                GetTotal(metrics.Select(x => x.B1)),
-                GetTotal(metrics.Select(x => x.B2)),
-                GetTotal(metrics.Select(x => x.B3)),
-                GetTotal(metrics.Select(x => x.B4)),
-                GetTotal(metrics.Select(x => x.B5)),
-                GetTotal(metrics.Select(x => x.B6)),
-                GetTotal(metrics.Select(x => x.B7)),
-                GetTotal(metrics.Select(x => x.B1toB7)),
-                GetTotal(metrics.Select(x => x.C1)),
-                GetTotal(metrics.Select(x => x.C2)),
-                GetTotal(metrics.Select(x => x.C3)),
-                GetTotal(metrics.Select(x => x.C4)),
-                GetTotal(metrics.Select(x => x.C1toC4)),
-                GetTotal(metrics.Select(x => x.D))
-            });
-        }
+            Dictionary<Module, double> totals = new Dictionary<Module, double>();
 
-        /***************************************************/
+            foreach (MaterialResult metric in metrics)
+            {
+                foreach (KeyValuePair<Module, double> kvp in metric.Indicators)
+                {
+                    if (double.IsNaN(kvp.Value))
+                        continue;
 
-        private static double GetTotal(IEnumerable<double> values)
-        {
-            IEnumerable<double> validValues = values.Where(x => !double.IsNaN(x));
-            
-            if (validValues.Count() > 0)
-                return validValues.Sum();
-            else 
-                return double.NaN;
+                    if (totals.ContainsKey(kvp.Key))
+                        totals[kvp.Key] += kvp.Value;
+                    else
+                        totals[kvp.Key] = kvp.Value;
+                }
+            }
+
+            return (MaterialResult)Activator.CreateInstance(type, "", "", totals);
         }
 
         /***************************************************/
