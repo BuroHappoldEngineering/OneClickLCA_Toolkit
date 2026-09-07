@@ -30,7 +30,7 @@ namespace OneClickLCA_Tests
             else
                 Assert.Inconclusive("Token file was not found in settings, so these tests have been marked as inconclusive.");
 
-            adapter = new OneClickLCAAdapter();
+            adapter = new OneClickLCAAdapter(new AuthAdapterMock());
         }
 
         [SetUp]
@@ -39,8 +39,6 @@ namespace OneClickLCA_Tests
         {
             CalculationResultsApiRequest request = new CalculationResultsApiRequest
             {
-                ClientId = clientId,
-                ClientSecret = clientSecret,
                 DesignId = designId,
                 ToolId = toolId,
                 ShowAllCategoriesForTool = false

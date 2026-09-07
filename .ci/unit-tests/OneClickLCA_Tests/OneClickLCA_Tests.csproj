@@ -61,6 +61,9 @@
       <HintPath>$(ProgramData)\BHoM\Assemblies\LifeCycleAssessment_oM.dll</HintPath>
 	  <SpecificVersion>false</SpecificVersion>
     </Reference>
+    <Reference Include="SQL_oM">
+      <HintPath>..\..\..\..\..\ProgramData\BHoM\Assemblies\SQL_oM.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

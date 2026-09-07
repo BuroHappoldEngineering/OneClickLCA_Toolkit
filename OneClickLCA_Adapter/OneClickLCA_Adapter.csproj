@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -96,6 +96,15 @@
       <HintPath>$(ProgramData)\BHoM\Assemblies\HTTP_oM.dll</HintPath>
       <Private>false</Private>
       <SpecificVersion>false</SpecificVersion>
+    </Reference>
+    <Reference Include="SQL_Adapter">
+      <HintPath>..\..\..\ProgramData\BHoM\Assemblies\SQL_Adapter.dll</HintPath>
+    </Reference>
+    <Reference Include="SQL_Engine">
+      <HintPath>..\..\..\ProgramData\BHoM\Assemblies\SQL_Engine.dll</HintPath>
+    </Reference>
+    <Reference Include="SQL_oM">
+      <HintPath>..\..\..\ProgramData\BHoM\Assemblies\SQL_oM.dll</HintPath>
     </Reference>
   </ItemGroup>
 

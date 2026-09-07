@@ -214,13 +214,15 @@ namespace BH.Adapter.OneClickLCA
 
         private IEnumerable<object> Pull(MaterialsCarbonDataApiRequest request)
         {
-            if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
+            UserAPIDetails details = Query.GetUserAPIDetails(m_userAdapter);
+
+            if (details == null)
             {
-                BH.Engine.Base.Compute.RecordError("Client ID and Client Secret are required for the OneClick LCA Carbon Data API.");
+                //GetUserAPIDetails already specifies why the user is invalid.
                 return new List<object>();
             }
 
-            string token = AcquireToken(request.ClientId, request.ClientSecret);
+            string token = AcquireToken(details.ClientId, details.ClientSecret);
             if (token == null)
                 return new List<object>();
 
@@ -373,13 +375,15 @@ namespace BH.Adapter.OneClickLCA
 
         private IEnumerable<object> Pull(ProjectsDataApiRequest request)
         {
-            if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
+            UserAPIDetails details = Query.GetUserAPIDetails(m_userAdapter);
+
+            if (details == null)
             {
-                BH.Engine.Base.Compute.RecordError("Client ID and Client Secret are required for the OneClick LCA Calculation Results API.");
+                //GetUserAPIDetails already specifies why the user is invalid.
                 return new List<object>();
             }
 
-            string token = AcquireToken(request.ClientId, request.ClientSecret);
+            string token = AcquireToken(details.ClientId, details.ClientSecret);
             if (token == null)
                 return new List<object>();
 
@@ -454,18 +458,21 @@ namespace BH.Adapter.OneClickLCA
 
         private IEnumerable<object> Pull(DictionaryDataApiRequest request)
         {
-            if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
-            {
-                BH.Engine.Base.Compute.RecordError("Client ID and Client Secret are required for the OneClick LCA Calculation Results API.");
-                return new List<object>();
-            }
             if (string.IsNullOrEmpty(request.DesignId))
             {
                 BH.Engine.Base.Compute.RecordError("DesignId is required for GetDictionaryDataRequest.");
                 return new List<object>();
             }
 
-            string token = AcquireToken(request.ClientId, request.ClientSecret);
+            UserAPIDetails details = Query.GetUserAPIDetails(m_userAdapter);
+
+            if (details == null)
+            {
+                //GetUserAPIDetails already specifies why the user is invalid.
+                return new List<object>();
+            }
+
+            string token = AcquireToken(details.ClientId, details.ClientSecret);
             if (token == null)
                 return new List<object>();
 
@@ -502,18 +509,21 @@ namespace BH.Adapter.OneClickLCA
 
         private IEnumerable<object> Pull(CalculationResultsApiRequest request)
         {
-            if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
-            {
-                BH.Engine.Base.Compute.RecordError("Client ID and Client Secret are required for the OneClick LCA Calculation Results API.");
-                return new List<object>();
-            }
             if (string.IsNullOrEmpty(request.DesignId) || string.IsNullOrEmpty(request.ToolId))
             {
                 BH.Engine.Base.Compute.RecordError("DesignId and ToolId are required for CalculationResultsApiRequest.");
                 return new List<object>();
             }
 
-            string token = AcquireToken(request.ClientId, request.ClientSecret);
+            UserAPIDetails details = Query.GetUserAPIDetails(m_userAdapter);
+
+            if (details == null)
+            {
+                //GetUserAPIDetails already specifies why the user is invalid.
+                return new List<object>();
+            }
+
+            string token = AcquireToken(details.ClientId, details.ClientSecret);
             if (token == null)
                 return new List<object>();
 
