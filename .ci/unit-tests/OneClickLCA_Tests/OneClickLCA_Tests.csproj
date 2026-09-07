@@ -4,10 +4,14 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-
+	<FileVersion>9.3.0.0</FileVersion>
+	<AssemblyVersion>9.0.0.0</AssemblyVersion>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <Configurations>Debug;Release;Test</Configurations>
+	<Description>https://github.com/BuroHappoldEngineering/OneClickLCA_Toolkit</Description>
+	<Authors>BuroHappoldEngineering</Authors>
+	<Copyright>Copyright © https://github.com/BuroHappoldEngineering</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,27 +31,43 @@
   <ItemGroup>
     <Reference Include="BHoM">
       <HintPath>$(ProgramData)\BHoM\Assemblies\BHoM.dll</HintPath>
+	  <Private>false</Private>
+	  <SpecificVersion>false</SpecificVersion>
     </Reference>
     <Reference Include="BHoM_Adapter">
       <HintPath>$(ProgramData)\BHoM\Assemblies\BHoM_Adapter.dll</HintPath>
+	  <Private>false</Private>
+	  <SpecificVersion>false</SpecificVersion>
     </Reference>
     <Reference Include="BHoM_Engine">
       <HintPath>$(ProgramData)\BHoM\Assemblies\BHoM_Engine.dll</HintPath>
+	  <Private>false</Private>
+	  <SpecificVersion>false</SpecificVersion>
     </Reference>
     <Reference Include="Data_oM">
       <HintPath>$(ProgramData)\BHoM\Assemblies\Data_oM.dll</HintPath>
+	  <Private>false</Private>
+	  <SpecificVersion>false</SpecificVersion>
     </Reference>
     <Reference Include="Adapter_oM">
       <HintPath>$(ProgramData)\BHoM\Assemblies\Adapter_oM.dll</HintPath>
-    </Reference>
-    <Reference Include="HTTP_Engine">
+	  <Private>false</Private>
+	  <SpecificVersion>false</SpecificVersion>
+	</Reference>
+	<Reference Include="HTTP_Engine">
       <HintPath>$(ProgramData)\BHoM\Assemblies\HTTP_Engine.dll</HintPath>
+	  <Private>false</Private>
+	  <SpecificVersion>false</SpecificVersion>
     </Reference>
     <Reference Include="HTTP_oM">
       <HintPath>$(ProgramData)\BHoM\Assemblies\HTTP_oM.dll</HintPath>
+	  <Private>false</Private>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
     <Reference Include="LifeCycleAssessment_oM">
       <HintPath>$(ProgramData)\BHoM\Assemblies\LifeCycleAssessment_oM.dll</HintPath>
+	  <Private>false</Private>
+	  <SpecificVersion>false</SpecificVersion>
     </Reference>
   </ItemGroup>
 

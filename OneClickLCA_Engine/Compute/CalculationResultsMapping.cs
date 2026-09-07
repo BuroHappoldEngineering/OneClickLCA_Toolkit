@@ -13,7 +13,7 @@ namespace BH.Engine.Adapters.OneClickLCA
     public static partial class Compute
     {
         [Description("Maps calculation results objects to life cycle stage based on their calculation rule id.")]
-        [Input("calculationResultsApiResponse", "The API response containing calculation results.")]
+        [Input("calculationResults", "The calculation results directly retrieved from the API.")]
         [Output("CalculationResults", "Results mapped based on their calculationRuleId.")]
         public static CalculationResultsMapping CalculationResultsMapping(List<CalculationResult> calculationResults)
         {

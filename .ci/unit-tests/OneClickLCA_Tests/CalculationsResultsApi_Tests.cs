@@ -20,6 +20,7 @@ namespace OneClickLCA_Tests
         private IEnumerable<CalculationResult> calculationResults;
 
         [OneTimeSetUp]
+        [Description("One time set up for the adapter and client secret key.")]
         public void OneTimeSetUp()
         {
             //TODO: change to pull from database based on current user instead of token file.
