@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This file is part of the Buildings and Habitats object Model (BHoM)
  * Copyright (c) 2015 - 2024, the respective contributors. All rights reserved.
  *
@@ -29,6 +29,7 @@ using BH.oM.Adapters.Excel;
 using BH.oM.Adapters.OneClickLCA;
 using BH.oM.Base;
 using BH.oM.Data.Requests;
+using BH.oM.LifeCycleAssessment;
 using BH.oM.LifeCycleAssessment.MaterialFragments;
 using BH.oM.LifeCycleAssessment.Results;
 using System.Collections.Generic;
@@ -104,27 +105,15 @@ namespace BH.Adapter.OneClickLCA
                 ClimateChangeBiogenicMaterialResult biogenic = results.OfType<ClimateChangeBiogenicMaterialResult>().FirstOrDefault();
 
                 if (total != null && biogenic != null)
-                    results.Add(new ClimateChangeTotalNoBiogenicMaterialResult(materialName, epdName,
-                        total.A1 - biogenic.A1,
-                        total.A2 - biogenic.A2,
-                        total.A3 - biogenic.A3,
-                        total.A1toA3 - biogenic.A1toA3,
-                        total.A4 - biogenic.A4,
-                        total.A5 - biogenic.A5,
-                        total.B1 - biogenic.B1,
-                        total.B2 - biogenic.B2,
-                        total.B3 - biogenic.B3,
-                        total.B4 - biogenic.B4,
-                        total.B5 - biogenic.B5,
-                        total.B6 - biogenic.B6,
-                        total.B7 - biogenic.B7,
-                        total.B1toB7 - biogenic.B1toB7,
-                        total.C1 - biogenic.C1,
-                        total.C2 - biogenic.C2,
-                        total.C3 - biogenic.C3,
-                        total.C4 - biogenic.C4,
-                        total.C1toC4 - biogenic.C1toC4,
-                        total.D - biogenic.D));
+                {
+                    Dictionary<BH.oM.LifeCycleAssessment.Module, double> noBiogenicIndicators = new Dictionary<BH.oM.LifeCycleAssessment.Module, double>();
+                    foreach (KeyValuePair<BH.oM.LifeCycleAssessment.Module, double> kvp in total.Indicators)
+                    {
+                        double biogenicValue = biogenic.Indicators.ContainsKey(kvp.Key) ? biogenic.Indicators[kvp.Key] : 0;
+                        noBiogenicIndicators[kvp.Key] = kvp.Value - biogenicValue;
+                    }
+                    results.Add(new ClimateChangeTotalNoBiogenicMaterialResult(materialName, epdName, noBiogenicIndicators));
+                }
             }
 
             return results;

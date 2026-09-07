@@ -22,12 +22,8 @@
 
 using BH.Adapter;
 using BH.oM.Base.Attributes;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Net;
 
 namespace BH.Adapter.OneClickLCA
 {
@@ -37,19 +33,19 @@ namespace BH.Adapter.OneClickLCA
         /**** Constructors                              ****/
         /***************************************************/
 
-        [Description("Adapter for OneClickLCA.")]
+        [Description("Adapter for OneClickLCA. Supports reading OneClick LCA report files (Excel) and querying the OneClick LCA Materials Carbon Data API.")]
         [Output("The created OneClickLCA adapter.")]
         public OneClickLCAAdapter()
         {
-
-            m_AdapterSettings.DefaultPushType = oM.Adapter.PushType.CreateNonExisting; 
+            m_AdapterSettings.DefaultPushType = oM.Adapter.PushType.CreateNonExisting;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         }
-
 
         /***************************************************/
         /**** Private  Fields                           ****/
         /***************************************************/
 
+        //TODO: set up database connection to check user name against allowed user list in database.
 
         /***************************************************/
     }

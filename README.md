@@ -17,7 +17,7 @@ https://oneclicklca.com/
  - LCA for LEED, US (TRACI)
 
 ### Documentation
-For more information about functionality, currently supported types and known issues see [OneClickLCA_Toolkit wiki](https://github.com/BHoM/OneClickLCA_Toolkit/wiki)
+For more information about functionality, currently supported types and known issues see [OneClickLCA_Toolkit wiki](https://github.com/BuroHappoldEngineering/OneClickLCA_Toolkit/wiki)
 
 ---
 This toolkit is part of the Buildings and Habitats object Model. Find out more on our [wiki](https://github.com/BHoM/documentation/wiki) or at [https://bhom.xyz](https://bhom.xyz/)
