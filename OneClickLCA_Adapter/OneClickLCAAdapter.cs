@@ -41,11 +41,11 @@ namespace BH.Adapter.OneClickLCA
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         }
 
-
         /***************************************************/
         /**** Private  Fields                           ****/
         /***************************************************/
 
+        //TODO: set up database connection to check user name against allowed user list in database.
 
         /***************************************************/
     }

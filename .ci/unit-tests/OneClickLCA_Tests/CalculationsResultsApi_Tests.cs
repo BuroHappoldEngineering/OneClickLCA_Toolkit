@@ -10,7 +10,7 @@ namespace OneClickLCA_Tests
     public class CalculationsResultsApi_Tests
     {
         private const string clientId = "service_acc_buro_happold";
-        private const string clientSecret = "";
+        private string clientSecret = "";
 
         // These can be set to whatever designId & toolId you want to fetch
         private const string designId = "69b1576c2b13bd02eee02e3c";
@@ -19,12 +19,23 @@ namespace OneClickLCA_Tests
         private OneClickLCAAdapter adapter;
         private IEnumerable<CalculationResult> calculationResults;
 
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            //TODO: change to pull from database based on current user instead of token file.
+            string tokenFile = "$ProgramData/BHoM/Settings/OneClickLCA.token";
+            if (File.Exists(tokenFile))
+                clientSecret = File.ReadAllText(tokenFile);
+            else
+                Assert.Inconclusive("Token file was not found in settings, so these tests have been marked as inconclusive.");
+
+            adapter = new OneClickLCAAdapter();
+        }
+
         [SetUp]
         [Description("Setup method to pull calculation results from One Click LCA API")]
         public void Setup()
         {
-            adapter = new OneClickLCAAdapter();
-
             CalculationResultsApiRequest request = new CalculationResultsApiRequest
             {
                 ClientId = clientId,
