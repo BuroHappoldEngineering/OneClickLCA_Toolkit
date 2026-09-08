@@ -72,6 +72,9 @@
 	  <Private>false</Private>
       <SpecificVersion>false</SpecificVersion>
     </Reference>
+    <Reference Include="HTTP_Adapter">
+      <HintPath>..\..\..\ProgramData\BHoM\Assemblies\HTTP_Adapter.dll</HintPath>
+    </Reference>
     <Reference Include="LifeCycleAssessment_Engine">
       <HintPath>$(ProgramData)\BHoM\Assemblies\LifeCycleAssessment_Engine.dll</HintPath>
 	  <Private>false</Private>

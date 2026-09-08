@@ -40,7 +40,7 @@ namespace BH.Adapter.OneClickLCA
 
             if (first == null)
             {
-                BH.Engine.Base.Compute.RecordError($"The user {userId} is not authorised to pull from the One Click LCA API.")
+                BH.Engine.Base.Compute.RecordError($"The user {userId} is not authorised to pull from the One Click LCA API.");
                 return null;
             }
 
@@ -50,7 +50,7 @@ namespace BH.Adapter.OneClickLCA
                 UserId = userId,
                 ClientId = (string)first.CustomData["ClientId"],
                 ClientSecret = (string)first.CustomData["ClientSecret"]
-            }
+            };
         }
     }
 }

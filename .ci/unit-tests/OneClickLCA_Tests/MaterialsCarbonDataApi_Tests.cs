@@ -16,27 +16,28 @@ namespace OneClickLCA_Tests
             "\"page\":1,\"facet_counts\":[],\"request_params\":{\"collection_name\":\"c\",\"first_q\":\"*\",\"per_page\":10,\"q\":\"*\"}," +
             "\"search_cutoff\":false,\"search_time_ms\":1}";
 
-        private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+        private OneClickLCAAdapter adapter;
+
+        [OneTimeSetUp]
+        [Description("One time set up for the adapter and client secret key.")]
+        public void OneTimeSetUp()
         {
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
+            adapter = new OneClickLCAAdapter(new AuthAdapterMock(), new ApiAdapterMock());
+        }
 
         [Test]
         [Description("Test that a materials-carbon document extracted from a search response can be converted to an EPD using the public converter.")]
         public void MaterialsCarbonDocumentJson_Converts_ToEpd()
         {
-            using JsonDocument doc = JsonDocument.Parse(MinimalSearchJson);
-            JsonElement documentElement = doc.RootElement.GetProperty("hits")[0].GetProperty("document");
+            IEnumerable<object> objs = adapter.Pull(new MaterialsCarbonDataApiRequest());
 
-            string documentJson = documentElement.GetRawText();
-
-            var epd = BH.Adapter.OneClickLCA.Convert.ToEnvironmentalProductDeclaration(documentJson);
+            Assert.That(objs.ToList(), Has.Count.EqualTo(1));
+            EnvironmentalProductDeclaration? epd = objs.Single() as EnvironmentalProductDeclaration;
 
             Assert.That(epd, Is.Not.Null);
             Assert.That(epd!.Name, Is.EqualTo("Test material"));
             Assert.That(epd.EnvironmentalMetrics, Is.Not.Null);
-            Assert.That(epd.EnvironmentalMetrics.Count, Is.GreaterThan(0));
+            Assert.That(epd.EnvironmentalMetrics, Is.Not.Empty);
         }
 
         [Description("Test that the public converter returns null for invalid input and produces expected EPD for valid document JSON.")]
