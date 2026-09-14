@@ -1,4 +1,5 @@
 ﻿using BH.Adapter;
+using BH.Adapter.OneClickLCA.Objects;
 using BH.oM.Adapter;
 using BH.oM.Adapters.SQL;
 using BH.oM.Base;
@@ -27,14 +28,9 @@ namespace OneClickLCA_Tests
             TableRequest tRequest = request as TableRequest;
 
             if (tRequest == null)
-            {
                 return null;
-            }
 
-            CustomObject rtn = new CustomObject();
-
-            rtn.CustomData["ClientId"] = "ValidClientId";
-            rtn.CustomData["ClientSecret"] = "ValidAPIKey";
+            UserAPIDetails rtn = new UserAPIDetails() { ClientId = "ValidClientId", ClientSecret = "ValidAPIKey" };
 
             return new List<object>() { rtn };
         }

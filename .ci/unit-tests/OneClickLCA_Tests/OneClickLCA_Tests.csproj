@@ -62,7 +62,8 @@
 	  <SpecificVersion>false</SpecificVersion>
     </Reference>
     <Reference Include="SQL_oM">
-      <HintPath>..\..\..\..\..\ProgramData\BHoM\Assemblies\SQL_oM.dll</HintPath>
+      <HintPath>$(ProgramData)\BHoM\Assemblies\SQL_oM.dll</HintPath>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
   </ItemGroup>
 
