@@ -18,18 +18,22 @@ namespace OneClickLCA_Tests
 
             if (getRequest.BaseUrl.Contains("materials-carbon-data"))
             {
-                return new List<object>() {
-            "{\"found\":1,\"hits\":[{\"document\":{\"_id\":\"testId\",\"nameEN\":\"Test material\",\"unitForData\":\"kg\"," +
-            "\"impacts\":{\"A1-A3\":{\"impactGWP100_kgCO2e_total\":1.5}},\"epdNumber\":\"EPD-1\"},\"highlight\":{},\"highlights\":[]}]," +
-            "\"page\":1,\"facet_counts\":[],\"request_params\":{\"collection_name\":\"c\",\"first_q\":\"*\",\"per_page\":10,\"q\":\"*\"}," +
-            "\"search_cutoff\":false,\"search_time_ms\":1}" };
+                return new List<object>() 
+                {
+                    "{\"found\":1,\"hits\":[{\"document\":{\"_id\":\"testId\",\"nameEN\":\"Test material\",\"unitForData\":\"kg\"," +
+                    "\"impacts\":{\"A1-A3\":{\"impactGWP100_kgCO2e_total\":1.5}},\"epdNumber\":\"EPD-1\"},\"highlight\":{},\"highlights\":[]}]," +
+                    "\"page\":1,\"facet_counts\":[],\"request_params\":{\"collection_name\":\"c\",\"first_q\":\"*\",\"per_page\":10,\"q\":\"*\"}," +
+                    "\"search_cutoff\":false,\"search_time_ms\":1}" 
+                };
             }
             else if (getRequest.BaseUrl.Contains("projects"))
             {
+                //TODO: get json of an expected project response
                 return new List<object>() { "expectedProjectsResponse" };
             }
             else if (getRequest.BaseUrl.Contains("calculation-results"))
             {
+                //TODO: get jsons for dictionary and calculation results responses
                 if (getRequest.BaseUrl.Contains("dictionary"))
                 {
                     return new List<object>() { "expectedDictionaryResponse" };

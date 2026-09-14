@@ -30,27 +30,19 @@ namespace BH.Adapter.OneClickLCA
             //TODO: sanitise the user ID!!!
             TableRequest request = new TableRequest()
             {
-                Table = "dbo.GetAPIKeyByUser",
-                Filter = $"User = '{userId ?? System.Environment.UserName}'"
+                Table = $"dbo.GetAPIKeyByUser('{userId ?? System.Environment.UserName}')",
+                DataType = typeof(UserAPIDetails)
             };
 
-            List<object> pulled = adapter.Pull(request).ToList();
+            UserAPIDetails details = adapter.Pull(request).OfType<UserAPIDetails>().FirstOrDefault();
 
-            CustomObject first = pulled.OfType<CustomObject>().FirstOrDefault();
-
-            if (first == null)
+            if (details == null)
             {
                 BH.Engine.Base.Compute.RecordError($"The user {userId} is not authorised to pull from the One Click LCA API.");
                 return null;
             }
 
-            //assume that the resulting dictionary is correct if there were no errors and the return was not empty.
-            return new UserAPIDetails()
-            {
-                UserId = userId,
-                ClientId = (string)first.CustomData["ClientId"],
-                ClientSecret = (string)first.CustomData["ClientSecret"]
-            };
+            return details;
         }
     }
 }
