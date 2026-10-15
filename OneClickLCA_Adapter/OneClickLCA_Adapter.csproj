@@ -73,7 +73,7 @@
       <SpecificVersion>false</SpecificVersion>
     </Reference>
     <Reference Include="HTTP_Adapter">
-      <HintPath>..\..\..\ProgramData\BHoM\Assemblies\HTTP_Adapter.dll</HintPath>
+      <HintPath>$(ProgramData)\BHoM\Assemblies\HTTP_Adapter.dll</HintPath>
     </Reference>
     <Reference Include="LifeCycleAssessment_Engine">
       <HintPath>$(ProgramData)\BHoM\Assemblies\LifeCycleAssessment_Engine.dll</HintPath>
@@ -101,13 +101,13 @@
       <SpecificVersion>false</SpecificVersion>
     </Reference>
     <Reference Include="SQL_Adapter">
-      <HintPath>..\..\..\ProgramData\BHoM\Assemblies\SQL_Adapter.dll</HintPath>
+      <HintPath>$(ProgramData)\BHoM\Assemblies\SQL_Adapter.dll</HintPath>
     </Reference>
     <Reference Include="SQL_Engine">
-      <HintPath>..\..\..\ProgramData\BHoM\Assemblies\SQL_Engine.dll</HintPath>
+      <HintPath>$(ProgramData)\BHoM\Assemblies\SQL_Engine.dll</HintPath>
     </Reference>
     <Reference Include="SQL_oM">
-      <HintPath>..\..\..\ProgramData\BHoM\Assemblies\SQL_oM.dll</HintPath>
+      <HintPath>$(ProgramData)\BHoM\Assemblies\SQL_oM.dll</HintPath>
     </Reference>
   </ItemGroup>
 

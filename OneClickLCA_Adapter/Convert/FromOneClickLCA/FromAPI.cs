@@ -92,8 +92,8 @@ namespace BH.Adapter.OneClickLCA
                 Baseline = record.Baseline,
                 RibaStage = record.RibaStage,
                 LastUpdated = record.LastUpdated,
-                CreatedBy = record.CreatedBy.FromAPI(),
-                LastUpdatedBy = record.LastUpdatedBy.FromAPI(),
+                CreatedBy = record.CreatedBy?.FromAPI() ?? new BasicUserDetails(),
+                LastUpdatedBy = record.LastUpdatedBy?.FromAPI() ?? new BasicUserDetails(),
             };
         }
 

@@ -35,7 +35,7 @@ namespace OneClickLCA_Tests
             };
 
             IEnumerable<object> pullResult = adapter.Pull(request);
-            calculationResults = pullResult?.FirstOrDefault() as IEnumerable<CalculationResult> ?? Enumerable.Empty<CalculationResult>();
+            calculationResults = pullResult?.FirstOrDefault() as IEnumerable<CalculationResult> ?? Enumerable.Empty<CalculationResult>().ToList();
         }
 
         [Test]
