@@ -29,12 +29,6 @@ namespace BH.oM.Adapters.OneClickLCA
     [Description("Request dictionary data (tool, category, and rule names) for a design from the OneClick LCA Calculation Results API (GET /calculation-results/dictionary).")]
     public class DictionaryDataApiRequest : BHoMObject, IRequest
     {
-        [Description("OAuth2 client identifier used for client credentials authentication.")]
-        public virtual string ClientId { get; set; } = "";
-
-        [Description("OAuth2 client secret used for client credentials authentication.")]
-        public virtual string ClientSecret { get; set; } = "";
-
         [Description("Unique identifier for the design (24-character alphanumeric).")]
         public virtual string DesignId { get; set; } = "";
     }

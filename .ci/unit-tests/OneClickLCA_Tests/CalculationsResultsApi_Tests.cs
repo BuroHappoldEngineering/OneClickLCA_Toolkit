@@ -9,9 +9,6 @@ namespace OneClickLCA_Tests
 {
     public class CalculationsResultsApi_Tests
     {
-        private const string clientId = "service_acc_buro_happold";
-        private string clientSecret = "";
-
         // These can be set to whatever designId & toolId you want to fetch
         private const string designId = "69b1576c2b13bd02eee02e3c";
         private const string toolId = "lcaRicsV2";
@@ -23,14 +20,7 @@ namespace OneClickLCA_Tests
         [Description("One time set up for the adapter and client secret key.")]
         public void OneTimeSetUp()
         {
-            //TODO: change to pull from database based on current user instead of token file.
-            string tokenFile = "$ProgramData/BHoM/Settings/OneClickLCA.token";
-            if (File.Exists(tokenFile))
-                clientSecret = File.ReadAllText(tokenFile);
-            else
-                Assert.Inconclusive("Token file was not found in settings, so these tests have been marked as inconclusive.");
-
-            adapter = new OneClickLCAAdapter();
+            adapter = new OneClickLCAAdapter(new AuthAdapterMock(), new ApiAdapterMock());
         }
 
         [SetUp]
@@ -39,15 +29,13 @@ namespace OneClickLCA_Tests
         {
             CalculationResultsApiRequest request = new CalculationResultsApiRequest
             {
-                ClientId = clientId,
-                ClientSecret = clientSecret,
                 DesignId = designId,
                 ToolId = toolId,
                 ShowAllCategoriesForTool = false
             };
 
             IEnumerable<object> pullResult = adapter.Pull(request);
-            calculationResults = pullResult?.FirstOrDefault() as IEnumerable<CalculationResult> ?? Enumerable.Empty<CalculationResult>();
+            calculationResults = pullResult?.FirstOrDefault() as IEnumerable<CalculationResult> ?? Enumerable.Empty<CalculationResult>().ToList();
         }
 
         [Test]

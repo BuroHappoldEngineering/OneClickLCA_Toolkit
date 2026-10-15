@@ -22,12 +22,14 @@
 
 using BH.Adapter;
 using BH.Adapter.Excel;
+using BH.Adapter.HTTP;
 using BH.Adapter.OneClickLCA.Objects;
 using BH.Engine.Adapter;
 using BH.Engine.Adapters.OneClickLCA;
 using BH.Engine.Base;
 using BH.oM.Adapter;
 using BH.oM.Adapters.Excel;
+using BH.oM.Adapters.HTTP;
 using BH.oM.Adapters.OneClickLCA;
 using BH.oM.Base;
 using BH.oM.Data.Requests;
@@ -214,13 +216,15 @@ namespace BH.Adapter.OneClickLCA
 
         private IEnumerable<object> Pull(MaterialsCarbonDataApiRequest request)
         {
-            if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
+            UserAPIDetails details = Query.GetUserAPIDetails(m_userAdapter);
+
+            if (details == null)
             {
-                BH.Engine.Base.Compute.RecordError("Client ID and Client Secret are required for the OneClick LCA Carbon Data API.");
+                //GetUserAPIDetails already specifies why the user is invalid.
                 return new List<object>();
             }
 
-            string token = AcquireToken(request.ClientId, request.ClientSecret);
+            string token = AcquireToken(details.ClientId, details.ClientSecret);
             if (token == null)
                 return new List<object>();
 
@@ -231,51 +235,6 @@ namespace BH.Adapter.OneClickLCA
             IEnumerable<object> epds = searchResponse.ToEnvironmentalProductDeclarations();
 
             return epds;
-        }
-
-        /***************************************************/
-
-        private string AcquireToken(string clientId, string clientSecret)
-        {
-            const string tokenUrl = "https://id.oneclicklcaapp.com/realms/oneclicklca/protocol/openid-connect/token";
-
-            try
-            {
-                using (HttpClient client = new HttpClient())
-                {
-                    // Prepare client credentials form
-                    FormUrlEncodedContent body = new FormUrlEncodedContent(new Dictionary<string, string>
-                    {
-                        { "grant_type", "client_credentials" },
-                        { "client_id", clientId },
-                        { "client_secret", clientSecret }
-                    });
-
-                    HttpResponseMessage response = client.PostAsync(tokenUrl, body).Result;
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        BH.Engine.Base.Compute.RecordError($"Failed to acquire OneClick LCA access token. Response: {(int)response.StatusCode} {response.ReasonPhrase}");
-                        return null;
-                    }
-
-                    string json = response.Content.ReadAsStringAsync().Result;
-
-                    using (JsonDocument doc = JsonDocument.Parse(json))
-                    {
-                        if (doc.RootElement.TryGetProperty("access_token", out JsonElement tokenElement))
-                            return tokenElement.GetString();
-                    }
-
-                    BH.Engine.Base.Compute.RecordError("Failed to extract access token from the OneClick LCA authentication response.");
-                    return null;
-                }
-            }
-            catch (Exception e)
-            {
-                BH.Engine.Base.Compute.RecordError(e, "Failed to acquire OneClick LCA access token.");
-                return null;
-            }
         }
 
         /***************************************************/
@@ -313,12 +272,14 @@ namespace BH.Adapter.OneClickLCA
                 if (!string.IsNullOrEmpty(request.SortBy))
                     parameters["sort_by"] = request.SortBy;
 
-                string responseJson = BH.Engine.Adapters.HTTP.Compute.MakeRequest(new BH.oM.Adapters.HTTP.GetRequest
+                IEnumerable<object> objs = m_apiAdapter.Pull(new BH.oM.Adapters.HTTP.GetRequest
                 {
                     BaseUrl = searchUrl,
                     Headers = new Dictionary<string, object> { { "Authorization", $"Bearer {token}" } },
                     Parameters = parameters
-                });
+                }, actionConfig: new HttpPullConfig() { ForceDeserialiseAsBHoM = false });
+
+                string responseJson = objs.FirstOrDefault()?.ToString();
 
                 if (responseJson == null)
                     break;
@@ -373,13 +334,15 @@ namespace BH.Adapter.OneClickLCA
 
         private IEnumerable<object> Pull(ProjectsDataApiRequest request)
         {
-            if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
+            UserAPIDetails details = Query.GetUserAPIDetails(m_userAdapter);
+
+            if (details == null)
             {
-                BH.Engine.Base.Compute.RecordError("Client ID and Client Secret are required for the OneClick LCA Calculation Results API.");
+                //GetUserAPIDetails already specifies why the user is invalid.
                 return new List<object>();
             }
 
-            string token = AcquireToken(request.ClientId, request.ClientSecret);
+            string token = AcquireToken(details.ClientId, details.ClientSecret);
             if (token == null)
                 return new List<object>();
 
@@ -394,12 +357,14 @@ namespace BH.Adapter.OneClickLCA
                 if (!string.IsNullOrEmpty(request.LastUpdatedAfter))
                     parameters["lastUpdatedAfter"] = request.LastUpdatedAfter;
 
-                string responseJson = BH.Engine.Adapters.HTTP.Compute.MakeRequest(new BH.oM.Adapters.HTTP.GetRequest
+                IEnumerable<object> objs = m_apiAdapter.Pull(new BH.oM.Adapters.HTTP.GetRequest
                 {
                     BaseUrl = $"{CalculationResultsApiBase}/projects",
                     Headers = new Dictionary<string, object> { { "Authorization", $"Bearer {token}" } },
                     Parameters = parameters
-                });
+                }, actionConfig: new HttpPullConfig() { ForceDeserialiseAsBHoM = false });
+
+                string responseJson = objs.FirstOrDefault()?.ToString();
 
                 if (string.IsNullOrEmpty(responseJson))
                     break;
@@ -454,27 +419,32 @@ namespace BH.Adapter.OneClickLCA
 
         private IEnumerable<object> Pull(DictionaryDataApiRequest request)
         {
-            if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
-            {
-                BH.Engine.Base.Compute.RecordError("Client ID and Client Secret are required for the OneClick LCA Calculation Results API.");
-                return new List<object>();
-            }
             if (string.IsNullOrEmpty(request.DesignId))
             {
                 BH.Engine.Base.Compute.RecordError("DesignId is required for GetDictionaryDataRequest.");
                 return new List<object>();
             }
 
-            string token = AcquireToken(request.ClientId, request.ClientSecret);
+            UserAPIDetails details = Query.GetUserAPIDetails(m_userAdapter);
+
+            if (details == null)
+            {
+                //GetUserAPIDetails already specifies why the user is invalid.
+                return new List<object>();
+            }
+
+            string token = AcquireToken(details.ClientId, details.ClientSecret);
             if (token == null)
                 return new List<object>();
 
-            string responseJson = BH.Engine.Adapters.HTTP.Compute.MakeRequest(new BH.oM.Adapters.HTTP.GetRequest
+            IEnumerable<object> objs = m_apiAdapter.Pull(new BH.oM.Adapters.HTTP.GetRequest
             {
                 BaseUrl = $"{CalculationResultsApiBase}/calculation-results/dictionary",
                 Headers = new Dictionary<string, object> { { "Authorization", $"Bearer {token}" } },
                 Parameters = new Dictionary<string, object> { { "designId", request.DesignId } }
-            });
+            }, actionConfig: new HttpPullConfig() { ForceDeserialiseAsBHoM = false });
+
+            string responseJson = objs.FirstOrDefault()?.ToString();
 
             if (string.IsNullOrEmpty(responseJson))
                 return new List<object>();
@@ -502,22 +472,25 @@ namespace BH.Adapter.OneClickLCA
 
         private IEnumerable<object> Pull(CalculationResultsApiRequest request)
         {
-            if (string.IsNullOrEmpty(request.ClientId) || string.IsNullOrEmpty(request.ClientSecret))
-            {
-                BH.Engine.Base.Compute.RecordError("Client ID and Client Secret are required for the OneClick LCA Calculation Results API.");
-                return new List<object>();
-            }
             if (string.IsNullOrEmpty(request.DesignId) || string.IsNullOrEmpty(request.ToolId))
             {
                 BH.Engine.Base.Compute.RecordError("DesignId and ToolId are required for CalculationResultsApiRequest.");
                 return new List<object>();
             }
 
-            string token = AcquireToken(request.ClientId, request.ClientSecret);
+            UserAPIDetails details = Query.GetUserAPIDetails(m_userAdapter);
+
+            if (details == null)
+            {
+                //GetUserAPIDetails already specifies why the user is invalid.
+                return new List<object>();
+            }
+
+            string token = AcquireToken(details.ClientId, details.ClientSecret);
             if (token == null)
                 return new List<object>();
 
-            string calculationJson = BH.Engine.Adapters.HTTP.Compute.MakeRequest(new BH.oM.Adapters.HTTP.GetRequest
+            IEnumerable<object> objects1 = m_apiAdapter.Pull(new BH.oM.Adapters.HTTP.GetRequest
             {
                 BaseUrl = $"{CalculationResultsApiBase}/calculation-results",
                 Headers = new Dictionary<string, object> { { "Authorization", $"Bearer {token}" } },
@@ -527,7 +500,9 @@ namespace BH.Adapter.OneClickLCA
                     { "toolId", request.ToolId },
                     { "showAllCategoriesForTool", request.ShowAllCategoriesForTool }
                 }
-            });
+            }, actionConfig: new HttpPullConfig() { ForceDeserialiseAsBHoM = false });
+
+            string calculationJson = objects1.FirstOrDefault().ToString();
 
             if (string.IsNullOrEmpty(calculationJson))
             {
