@@ -39,6 +39,16 @@
 	  <Private>false</Private>
       <SpecificVersion>false</SpecificVersion>
     </Reference>
+    <Reference Include="Python_Engine">
+      <HintPath>$(ProgramData)\BHoM\Assemblies\Python_Engine.dll</HintPath>
+		<Private>false</Private>
+		<SpecificVersion>false</SpecificVersion>
+    </Reference>
+    <Reference Include="Python_oM">
+      <HintPath>$(ProgramData)\BHoM\Assemblies\Python_oM.dll</HintPath>
+		<Private>false</Private>
+		<SpecificVersion>false</SpecificVersion>
+    </Reference>
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
