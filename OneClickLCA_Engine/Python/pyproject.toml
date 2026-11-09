@@ -7,10 +7,8 @@ authors = [
 dynamic = ["version", "description"]
 dependencies = [
 	"openai",
-	"langdetect",
-	"langchain",
+	"pyspark",
 	"langchain-openai",
-	"langchain-experimental==0.0.57",
 	"langchain-chroma",
 	"openpyxl"
 ]
