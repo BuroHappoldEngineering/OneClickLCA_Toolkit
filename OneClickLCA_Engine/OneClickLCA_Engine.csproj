@@ -51,6 +51,12 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Python\src\oneclicklca_toolkit\epd_mapping_tool\clients\" />
+    <Folder Include="Python\src\oneclicklca_toolkit\epd_mapping_tool\compute\" />
+    <Folder Include="Python\src\oneclicklca_toolkit\epd_mapping_tool\util\" />
+  </ItemGroup>
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="xcopy &quot;$(TargetDir)$(TargetFileName)&quot;  &quot;C:\ProgramData\BHoM\Assemblies&quot; /Y" />
   </Target>
