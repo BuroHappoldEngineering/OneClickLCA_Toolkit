@@ -4,7 +4,7 @@ import sys
 import pandas as pd
 from pathlib import Path
 
-# import oneclicklca_toolkit
+import oneclicklca_toolkit
 
 
 

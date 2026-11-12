@@ -8,15 +8,18 @@ namespace BH.Engine.Adapters.OneClickLCA
     public static partial class Compute
     {
         //TODO: write python env install method.
-        public static PythonEnvironment InstallPythonEnv_OneCliclLCA(bool run = false, bool reinstall = false)
+        public static PythonEnvironment InstallPythonEnv_OneClickLCA(bool run = false, bool reinstall = false)
         {
             if (!run)
                 return null;
 
-            if (!reinstall)
-                return Python.Compute.VirtualEnvironment(oM.Python.Enums.PythonVersion.v3_13, Query.ToolkitName());
 
-            PythonEnvironment virtualEnvironment = Python.Compute.VirtualEnvironment(oM.Python.Enums.PythonVersion.v3_13, Query.ToolkitName(), false);
+            bool exists = Python.Query.VirtualEnvironmentExists(Query.ToolkitName(), oM.Python.Enums.PythonVersion.v3_12);
+
+            if (!reinstall && exists)
+                return Python.Compute.VirtualEnvironment(oM.Python.Enums.PythonVersion.v3_12, Query.ToolkitName());
+
+            PythonEnvironment virtualEnvironment = Python.Compute.VirtualEnvironment(oM.Python.Enums.PythonVersion.v3_12, Query.ToolkitName(), false);
 
             Python.Compute.InstallPackageLocal(virtualEnvironment, System.IO.Path.Combine(Python.Query.DirectoryCode(), Python.Query.ToolkitName()));
             Python.Compute.InstallPackageLocal(virtualEnvironment, System.IO.Path.Combine(Python.Query.DirectoryCode(), Query.ToolkitName()));
