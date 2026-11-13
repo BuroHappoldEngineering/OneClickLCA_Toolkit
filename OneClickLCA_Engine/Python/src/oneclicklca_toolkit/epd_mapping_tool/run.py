@@ -4,9 +4,9 @@ import sys
 import pandas as pd
 from pathlib import Path
 
-import oneclicklca_toolkit
+from python_toolkit.bhom.logging import CONSOLE_LOGGER
 
-
+from util.validation import is_valid_id
 
 # TODO Update below to Python_Toolit logger if needed - For analytics?
 # def _get_console_logger() -> logging.Logger:
@@ -27,7 +27,8 @@ import oneclicklca_toolkit
 DATASETS_FOLDER = Path(__file__).parent / "datasets"
 DICTIONARY_PATH = DATASETS_FOLDER / "dictionary.xlsx"  # LLM input
 #TODO Set up input and output folder to be folder links from the user
-# PROJECT_INPUT_PATH = Path(r"/Workspace/Users/johanna.olin@burohappold.com/epd_mapping_bhom_mockup/project_input_10.xlsx")
+# PROJECT_INPUT_PATH = Path(r"C:\Users\jolin\OneDrive - Buro Happold\02_CompDev\EPD Mapping\03_BHoM_Move\input\project_input_10.xlsx")
+PROJECT_INPUT_PATH = Path(r"C:\Users\jolin\OneDrive - Buro Happold\02_CompDev\EPD Mapping\03_BHoM_Move\input\project_input_10_id_error.xlsx")
 # OUTPUT_FOLDER = Path(__file__).parent / "output"
 # OUTPUT_FILE = OUTPUT_FOLDER / "epd_mapping_results.xlsx"
 # EPDS_NOT_IN_API_FILE = OUTPUT_FOLDER / "epds_not_in_api.xlsx"
@@ -79,13 +80,13 @@ def load_dictionary(dictionary_path: Path):
 #     collection_remaining = create_collection(chroma_client=client_chroma, collection_name="examples_remaining", collection_df=ex_remaining)
 #     return ex_epd_lib, ex_remaining, collection_epd_lib, collection_remaining
 
-#TODO THIS SHOULD BE POSSIBLE TO RUN
-# def load_project_input(project_input_path: Path):
-#     """Get input excel sheet, make id into string and check if valid - USER INPUT."""
-#     project_df = pd.read_excel(project_input_path)
-#     project_df['id'] = project_df['id'].astype(str)
-#     is_valid_id(project_df)
-#     return project_df
+# TODO Remove if not needed
+def load_project_input(project_input_path: Path):
+    """Get input excel sheet, make id into string and check if valid - USER INPUT."""
+    project_df = pd.read_excel(project_input_path)
+    project_df['id'] = project_df['id'].astype(str)
+    # is_valid_id(project_df)
+    return project_df
 
 # TODO Requires openAI models
 # def create_questions(project_df):
@@ -307,7 +308,6 @@ def main():
 
     # CONSOLE_LOGGER.info("Loading supporting dictionary...")
     df_dict = load_dictionary(DICTIONARY_PATH)
-    print(df_dict)
 
 #     CONSOLE_LOGGER.info("Setting up example collections...")
 #     try:
@@ -317,11 +317,13 @@ def main():
 #         return
 
 #     CONSOLE_LOGGER.info("Loading project input...")
-#     try:
-#         project_df = load_project_input(PROJECT_INPUT_PATH)
-#     except Exception:
-#         CONSOLE_LOGGER.error("Error when trying to load the project input.", exc_info=1)
-#         return
+    try:
+        project_df = load_project_input(PROJECT_INPUT_PATH)
+        project_df = is_valid_id(project_df)
+        CONSOLE_LOGGER.info(project_df)
+    except Exception:
+        CONSOLE_LOGGER.error("Error when trying to load the project input.", exc_info=1)
+        return
 
 #     CONSOLE_LOGGER.info("Setting up LLM and creating questions...")
 #     try:
