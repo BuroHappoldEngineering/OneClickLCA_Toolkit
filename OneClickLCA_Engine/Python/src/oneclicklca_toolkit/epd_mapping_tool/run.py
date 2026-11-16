@@ -6,8 +6,12 @@ from pathlib import Path
 
 from python_toolkit.bhom.logging import CONSOLE_LOGGER
 
+from compute.epd_library import load_epd_library
+from compute.examples import filter_examples, examples
+from util.nested_dict import tree, nested_append, to_dict
 from util.validation import is_valid_id
 from util.llm import llm_questions
+from clients.chroma_db import create_chroma_client
 
 # TODO Update below to Python_Toolit logger if needed - For analytics?
 # def _get_console_logger() -> logging.Logger:
@@ -27,6 +31,8 @@ from util.llm import llm_questions
 # ----------------------------------------------------------------------------
 DATASETS_FOLDER = Path(__file__).parent / "datasets"
 DICTIONARY_PATH = DATASETS_FOLDER / "dictionary.xlsx"  # LLM input
+EPD_LIBRARY_PATH = DATASETS_FOLDER / "epd_library_api_TEMP.json"
+PROJECT_EXAMPLES_PATH = DATASETS_FOLDER / "projects_filtered.json"
 #TODO Set up input and output folder to be folder links from the user
 PROJECT_INPUT_PATH = Path(r"C:\Users\jolin\OneDrive - Buro Happold\02_CompDev\EPD Mapping\03_BHoM_Move\input\project_input_10.xlsx")
 # OUTPUT_FOLDER = Path(__file__).parent / "output"
@@ -41,24 +47,25 @@ MAX_DISTANCE = 0.5  # matches with a distance at or above this are removed
 # Load inputs
 # ----------------------------------------------------------------------------
 #TODO Add EPD library functions when the outputs are available in the One Click Materials API
-# def load_epd_library_data():
+def load_epd_library_data(epd_library_path: Path):
 #     """Load EPD Library with API additions. Returns (epd_lib_df, epds_not_in_api)."""
 #     epd_lib_tuple = load_epd_library()
 #     epd_lib_df = epd_lib_tuple[0]
 #     epds_not_in_api = epd_lib_tuple[1]
-#     return epd_lib_df, epds_not_in_api
+    epd_lib_df = load_epd_library(epd_library_path)
+    return epd_lib_df #, epds_not_in_api
 
 
-# def build_epd_hierarchy(epd_lib_df) -> str:
-#     """Build nested EPD category dict for the LLM prompt - LLM Input."""
-#     hier = tree()
+def build_epd_hierarchy(epd_lib_df) -> str:
+    """Build nested EPD category dict for the LLM prompt - LLM Input."""
+    hier = tree()
 
-#     for _, row in epd_lib_df.iterrows():
-#         keys = [row.resourceType, row.resourceSubType, row.resourceTypeL3, row.technicalSpec]
-#         nested_append(hier, keys, list([row.staticFullName, row.carbonFactorPerKG]))
+    for _, row in epd_lib_df.iterrows():
+        keys = [row.resourceType, row.resourceSubType, row.resourceTypeL3, row.technicalSpec]
+        nested_append(hier, keys, list([row.staticFullName, row.carbonFactorPerKG]))
 
-#     epd_lib_dict = json.dumps(to_dict(hier), indent=2)  # LLM input
-#     return epd_lib_dict
+    epd_lib_dict = json.dumps(to_dict(hier), indent=2)  # LLM input
+    return epd_lib_dict
 
 
 def load_dictionary(dictionary_path: Path):
@@ -66,19 +73,16 @@ def load_dictionary(dictionary_path: Path):
     df_dict = pd.read_excel(dictionary_path)  # LLM input
     return df_dict
 
-# TODO Requires EPD Library
-# def build_example_collections():
-#     """Filter examples to EPD Library and non EPD Library, and store example embeddings in chroma databases.
 
-#     Returns (ex_epd_lib, ex_remaining, collection_epd_lib, collection_remaining).
-#     """
-#     ex_epd_lib, ex_remaining = filter_examples()
+def build_example_collections(project_examples_path: Path):
+    """Filter examples to EPD Library and non EPD Library, and store example embeddings in chroma databases. Returns (ex_epd_lib, ex_remaining, collection_epd_lib, collection_remaining)."""
+    ex_epd_lib, ex_remaining = filter_examples(project_examples_path)
 
-#     client_chroma = create_chroma_client()
+    client_chroma = create_chroma_client()
 
-#     collection_epd_lib = create_collection(chroma_client=client_chroma, collection_name="examples_epd_library", collection_df=ex_epd_lib)
-#     collection_remaining = create_collection(chroma_client=client_chroma, collection_name="examples_remaining", collection_df=ex_remaining)
-#     return ex_epd_lib, ex_remaining, collection_epd_lib, collection_remaining
+    collection_epd_lib = create_collection(chroma_client=client_chroma, collection_name="examples_epd_library", collection_df=ex_epd_lib)
+    collection_remaining = create_collection(chroma_client=client_chroma, collection_name="examples_remaining", collection_df=ex_remaining)
+    return ex_epd_lib, ex_remaining, collection_epd_lib, collection_remaining
 
 # TODO Move to main?
 def load_project_input(project_input_path: Path):
@@ -97,97 +101,6 @@ def create_questions(project_df):
     # question_texts = [make_embedding_text(q) for q in questions]
     # question_embeddings = generate_embeddings_batch(question_texts)
     return llm, questions, #question_embeddings
-
-
-# ----------------------------------------------------------------------------
-# Prompts
-# ----------------------------------------------------------------------------
-# def build_user_message(question, epd_lib_dict, epdlibrary_examples, remaining_examples) -> str:
-#     user_message = f"""
-#     Please select categories for the material described in the following dictionary: {question}. 
-
-#     Use the Costplan entry, Headline 1, Headline 2, Headline 3, Headline 4, and Headline 5 to select one of the fixed categories under each of the following dictionary keys: resourceType, resourceSubType, resourceTypeL3, technicalSpec and EPD name.
-    
-#     The valid category structure is provided: {epd_lib_dict}. Note that the JSON no longer contains the original label names, but its hierarchy follows:
-#     Level 0 = resourceType
-#     Level 1 = resourceSubType
-#     Level 2 = resourceTypeL3
-#     Level 3 = technicalSpec
-#     Level 4 = EPD name
-
-#     Use this category structure to identify the correct category at each depth.
-    
-#     All categories will always have information and the valid category should always be mapped even if the category is null.
-
-#     It is explicitly valid and expected for the same string to appear at multiple hierarchy levels (e.g. resourceType="insulation" AND resourceSubType="insulation"). When the hierarchy defines the same value at Level N and Level N+1, you MUST output that identical string for the fields with the same value. Do NOT substitute a different value or remove one of the values simply because it would "look" like a duplicate — the hierarchy is the source of truth and all the values should be filled in.
-
-#     Be aware that the headlines are not always present, and may be empty.
-
-#     Use the following examples to support the selection: {epdlibrary_examples['examples']}. Each example is an array following the schema order as stated here: {epdlibrary_examples['schema']}.
-
-#     Where valid categories can't be reasonably selected from the valid category structure, select resourceType, resourceSubType, resourceTypeL3, technicalSpec and EPD name using the following examples instead: {remaining_examples['examples']}. Each example is an array following the schema order as stated here: {remaining_examples['schema']}.
-#     Be aware that these examples will not always follow the valid category structure and if that is the case the category strucutre as provided in the example should be followed. All categories in the examples will always have information and the valid category should always be mapped even if the category is null or left empty.
-#     """
-#     return user_message
-
-
-# def build_system_message(df_dict) -> str:
-#     system_message = f"""
-#     Role
-#     You are a UK‑based building‑engineering carbon‑calculation assistant.
-#     You are aware of the terms in the follwing dictionary: {df_dict}
-    
-#     Primary Task
-#     Given a single construction costplan entry and headlines, select the required categories and return JSON only — no explanations or extra text.
-
-#     Your task is NOT to classify or infer new labels.
-
-#     Your task is to SELECT an EXISTING VALID PATH from the provided category structure.
-
-#     Each of the following must be selected exactly from the JSON hierarchy provided:
-
-#     resourceType must be selected from Level 0
-#     resourceSubType must be a child of the selected resourceType at Level 1
-#     resourceTypeL3 must be a child of the selected resourceSubType at Level 2
-#     technicalSpec must be a child of the selected resourceTypeL3 at Level 3 OR be an empty string if missing
-#     EPD name must be selected from Level 4 under the chosen technicalSpec
-
-#     You are performing hierarchical path retrieval, not semantic classification.
-
-#     If no exact valid path exists in the provided hierarchy:
-#     select the closest EXISTING FULL PATH from the hierarchy.
-#     DO NOT create, modify, infer, or generalise any label
-
-#     Output Format
-#     Return exactly one JSON object with the following keys, in this order, and no additional keys:
-#     "id" — string
-#     "Costplan entry" — string
-#     "Headline 1" — string (different level descriptions of a building element, e.g. Substructure, Upper floors, Timber floor structure, etc.)
-#     "Headline 2" — string (different level descriptions of a building element, e.g. Substructure, Upper floors, Timber floor structure, etc.)
-#     "Headline 3" — string (different level descriptions of a building element, e.g. Substructure, Upper floors, Timber floor structure, etc.)
-#     "Headline 4" — string (different level descriptions of a building element, e.g. Substructure, Upper floors, Timber floor structure, etc.)
-#     "Headline 5" — string (different level descriptions of a building element, e.g. Substructure, Upper floors, Timber floor structure, etc.)
-#     "resourceType" — string (e.g., metal, timber, concrete, masonry, insulation, membrane, plasticMembraneRoofing)
-#     "resourceSubType" — string (e.g., structuralSteel, softwood, rebar, aluminiumExtrusions)
-#     "resourceTypeL3" — string (e.g., structuralSteelPlateSheetCoilsDecking)
-#     "technicalSpec" — string (e.g., structuralSteelPlateSheetCoilsDecking)
-#     "EPD name" — string (will vary in detail level depending on the material, e.g. 'Single skin wall from bricks, including mortar, 102.5 mm, 1:5 cement:sand mix, uses CEM I cement, 194.11 kg/m2' and 'Ceramic tile',)
-    
-#     Strict Rules
-#     JSON only: 
-#     Output must be a valid JSON object, not a string or code block. Do not include any extra spaces, indentation, or line breaks in the output. Do not wrap the JSON in quotes or markdown/code fences. Examples may be formatted for readability; output must be a single-line JSON object.
-#     Schema completeness: 
-#     Always select a category for all of the levels even if the value is the same for different levels.
-#     Normalisation: Don't change the formatting of any of the outputs.
-#     Hierarchy Enforcement:
-#     All selected values must form a valid parent-child path in the provided category structure.
-#     A value at Level N is ONLY valid if it exists as a child of the selected Level N-1 value in the hierarchy.
-#     Closed Set Constraint:
-#     All output values must be copied EXACTLY from the category structure.
-#     String similarity, paraphrasing, or semantic equivalents are NOT permitted.
-#     If the exact label is not present in the structure it MUST NOT be used.
-#     """
-#     return system_message
 
 
 # ----------------------------------------------------------------------------

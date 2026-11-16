@@ -14,9 +14,9 @@ using System.Text.Json;
 
 public static partial class Compute
 {
-    internal class openai_chat
+    internal class epdmapping_chatcompletion
     {
-        public static Dictionary<string, string> EPDMapping(Dictionary<string, string> question, Dictionary<string, string> epd_lib_dict, Dictionary<string, string> epdlibrary_examples, Dictionary<string, string> remaining_examples, Dictionary<string, string> df_dict)
+        public static string EPDMapping(Dictionary<string, string> question, Dictionary<string, string> epd_lib_dict, Dictionary<string, string> epdlibrary_examples, Dictionary<string, string> remaining_examples, Dictionary<string, string> df_dict)
         {
             OpenAIAdapter adapter = OpenAI_ChatAdapter();
             PromptExecutionConfig config = new PromptExecutionConfig 
@@ -64,7 +64,7 @@ public static partial class Compute
 
             //BH.Engine.Base.Compute.StartSuppressRecordingEvents(true, true); // TO SUPRESS WARNINGS AND ERRORS
 
-            Dictionary<string, string>  mappingResult = new Dictionary<string, string>();
+            //Dictionary<string, string>  mappingResult = new Dictionary<string, string>();
             //Output<string, bool> response
 
             //try
@@ -72,14 +72,14 @@ public static partial class Compute
             GenerateChatCompletion prompt = new GenerateChatCompletion { System = systemPrompt, User = new List<string> { userPrompt } };
             Output<string, bool> response = adapter.ExecuteAsync(prompt, config).GetAwaiter().GetResult();
 
-            mappingResult = JsonSerializer.Deserialize<Dictionary<string, string>>(response.Item1);
+            //mappingResult = JsonSerializer.Deserialize<Dictionary<string, string>>(response.Item1); - NO NEED TO DESIRIALISE FROM JSON AS THIS WILL BE MOVED TO THE PYTHON ENVIRONMENT
             //}
             //catch (Exception ex)
             //{
             //    Base.Compute.RecordWarning($"EPD mapping failed to parse the chat completion: {ex.Message}");
             //}
 
-            return mappingResult;
+            return response.Item1;
         }
 
         private static OpenAIAdapter OpenAI_ChatAdapter()
