@@ -7,6 +7,7 @@ from pathlib import Path
 from python_toolkit.bhom.logging import CONSOLE_LOGGER
 
 from util.validation import is_valid_id
+from util.llm import llm_questions
 
 # TODO Update below to Python_Toolit logger if needed - For analytics?
 # def _get_console_logger() -> logging.Logger:
@@ -27,8 +28,7 @@ from util.validation import is_valid_id
 DATASETS_FOLDER = Path(__file__).parent / "datasets"
 DICTIONARY_PATH = DATASETS_FOLDER / "dictionary.xlsx"  # LLM input
 #TODO Set up input and output folder to be folder links from the user
-# PROJECT_INPUT_PATH = Path(r"C:\Users\jolin\OneDrive - Buro Happold\02_CompDev\EPD Mapping\03_BHoM_Move\input\project_input_10.xlsx")
-PROJECT_INPUT_PATH = Path(r"C:\Users\jolin\OneDrive - Buro Happold\02_CompDev\EPD Mapping\03_BHoM_Move\input\project_input_10_id_error.xlsx")
+PROJECT_INPUT_PATH = Path(r"C:\Users\jolin\OneDrive - Buro Happold\02_CompDev\EPD Mapping\03_BHoM_Move\input\project_input_10.xlsx")
 # OUTPUT_FOLDER = Path(__file__).parent / "output"
 # OUTPUT_FILE = OUTPUT_FOLDER / "epd_mapping_results.xlsx"
 # EPDS_NOT_IN_API_FILE = OUTPUT_FOLDER / "epds_not_in_api.xlsx"
@@ -80,27 +80,23 @@ def load_dictionary(dictionary_path: Path):
 #     collection_remaining = create_collection(chroma_client=client_chroma, collection_name="examples_remaining", collection_df=ex_remaining)
 #     return ex_epd_lib, ex_remaining, collection_epd_lib, collection_remaining
 
-# TODO Remove if not needed
+# TODO Move to main?
 def load_project_input(project_input_path: Path):
     """Get input excel sheet, make id into string and check if valid - USER INPUT."""
     project_df = pd.read_excel(project_input_path)
     project_df['id'] = project_df['id'].astype(str)
-    # is_valid_id(project_df)
     return project_df
 
 # TODO Requires openAI models
-# def create_questions(project_df):
-#     """Set up llm and create questions - LLM INPUT.
+def create_questions(project_df):
+    """ Set up llm and create questions - LLM INPUT. Returns (llm, questions, question_embeddings)."""
+    llm = get_openai_chat_client()
+    questions = llm_questions(project_df)
 
-#     Returns (llm, questions, question_embeddings).
-#     """
-#     llm = get_openai_chat_client()
-#     questions = llm_questions(project_df)
-
-#     # Make embeddings out of the questions for the example vector search
-#     question_texts = [make_embedding_text(q) for q in questions]
-#     question_embeddings = generate_embeddings_batch(question_texts)
-#     return llm, questions, question_embeddings
+    # Make embeddings out of the questions for the example vector search
+    # question_texts = [make_embedding_text(q) for q in questions]
+    # question_embeddings = generate_embeddings_batch(question_texts)
+    return llm, questions, #question_embeddings
 
 
 # ----------------------------------------------------------------------------

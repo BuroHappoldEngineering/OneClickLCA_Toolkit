@@ -65,4 +65,46 @@
     <Exec Command="if not exist $(ProgramData)\BHoM\Extensions\PythonEnvironments mkdir $(ProgramData)\BHoM\Extensions\PythonEnvironments&#xD;&#xA;if not exist $(ProgramData)\BHoM\Extensions\PythonCode mkdir $(ProgramData)\BHoM\Extensions\PythonCode&#xD;&#xA;      &#xD;&#xA;if exist $(ProgramData)\BHoM\Extensions\PythonCode\$(SolutionName) rmdir $(ProgramData)\BHoM\Extensions\PythonCode\$(SolutionName) /S /Q&#xD;&#xA;mkdir $(ProgramData)\BHoM\Extensions\PythonCode\$(SolutionName)&#xD;&#xA;&#xD;&#xA;robocopy &quot;$(ProjectDir)Python&quot; $(ProgramData)\BHoM\Extensions\PythonCode\$(SolutionName) /mir /xf &quot;*.pyc&quot; &quot;*.ipynb&quot; /xd &quot;__*__&quot; &quot;.*&quot; &gt; output.log&#xD;&#xA;del output.log&#xD;&#xA;echo $(FileVersion) &gt; $(ProgramData)\BHoM\Extensions\PythonCode\$(SolutionName)\VERSION.txt" />
   </Target>
 
+  <ItemGroup>
+	  <Reference Include="OpenAI_Adapter">
+		  <HintPath>$(ProgramData)\BHoM\Assemblies\OpenAI_Adapter.dll</HintPath>
+		  <Private>false</Private>
+		  <SpecificVersion>false</SpecificVersion>
+	  </Reference>
+	  <Reference Include="Adapter_oM">
+		  <HintPath>$(ProgramData)\BHoM\Assemblies\Adapter_oM.dll</HintPath>
+		  <Private>false</Private>
+		  <SpecificVersion>false</SpecificVersion>
+	  </Reference>
+	  <Reference Include="OpenAI_Engine">
+		  <HintPath>$(ProgramData)\BHoM\Assemblies\OpenAI_Engine.dll</HintPath>
+		  <Private>false</Private>
+		  <SpecificVersion>false</SpecificVersion>
+	  </Reference>
+	  <Reference Include="OpenAI_oM">
+		  <HintPath>$(ProgramData)\BHoM\Assemblies\OpenAI_oM.dll</HintPath>
+		  <Private>false</Private>
+		  <SpecificVersion>false</SpecificVersion>
+	  </Reference>
+	  <Reference Include="BuroHappold_OpenAI_Engine">
+		  <HintPath>$(ProgramData)\BHoM\Assemblies\BuroHappold_OpenAI_Engine.dll</HintPath>
+		  <Private>false</Private>
+		  <SpecificVersion>false</SpecificVersion>
+	  </Reference>
+	  <Reference Include="BuroHappold_OpenAI_oM">
+		  <HintPath>$(ProgramData)\BHoM\Assemblies\BuroHappold_OpenAI_oM.dll</HintPath>
+		  <Private>false</Private>
+		  <SpecificVersion>false</SpecificVersion>
+	  </Reference>
+	  <Reference Include="BHoM_Adapter">
+		  <HintPath>$(ProgramData)\BHoM\Assemblies\BHoM_Adapter.dll</HintPath>
+		  <Private>false</Private>
+		  <SpecificVersion>false</SpecificVersion>
+	  </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+	  <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+
 </Project>
