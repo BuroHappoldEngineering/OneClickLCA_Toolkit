@@ -22,6 +22,7 @@
 
 using BH.oM.Base;
 using BH.oM.Base.Attributes;
+using BH.oM.Classification.Element;
 using BH.oM.LifeCycleAssessment.MaterialFragments;
 using BH.oM.LifeCycleAssessment.Results;
 using BH.oM.Quantities.Attributes;

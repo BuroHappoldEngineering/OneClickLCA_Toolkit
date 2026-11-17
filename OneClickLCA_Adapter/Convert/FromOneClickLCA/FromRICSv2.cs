@@ -22,6 +22,7 @@
 
 using BH.oM.Adapters.OneClickLCA;
 using BH.oM.Base;
+using BH.oM.Classification.Element;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,7 +45,7 @@ namespace BH.Adapter.OneClickLCA
             int index = category.ToList<char>().FindIndex(x => x >= 65 && x <= 122);
             string code = index >= 0 ? category.Substring(0, index).Trim(new char[] { ' ', '.' }) : category;
 
-            RICSCategory rics = BH.Engine.Adapters.OneClickLCA.Create.RICSCategory(code);
+            RICSCategory rics = BH.Engine.Classification.Create.RICSCategory(code);
             if (rics == RICSCategory.Undefined)
                 return RICSCategory._9;
             else

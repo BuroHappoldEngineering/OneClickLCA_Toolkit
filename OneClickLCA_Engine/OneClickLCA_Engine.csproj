@@ -24,6 +24,16 @@
       <Private>false</Private>
       <SpecificVersion>false</SpecificVersion>
     </Reference>
+    <Reference Include="Classification_Engine">
+      <HintPath>$(ProgramData)\BHoM\Assemblies\Classification_Engine.dll</HintPath>
+      <Private>false</Private>
+      <SpecificVersion>false</SpecificVersion>
+    </Reference>
+    <Reference Include="Classification_oM">
+      <HintPath>$(ProgramData)\BHoM\Assemblies\Classification_oM.dll</HintPath>
+      <Private>false</Private>
+      <SpecificVersion>false</SpecificVersion>
+    </Reference>
     <Reference Include="BHoM_Engine">
       <HintPath>$(ProgramData)\BHoM\Assemblies\BHoM_Engine.dll</HintPath>
 	  <Private>false</Private>
