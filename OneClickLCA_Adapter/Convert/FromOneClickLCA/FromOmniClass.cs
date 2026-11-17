@@ -22,6 +22,7 @@
 
 using BH.oM.Adapters.OneClickLCA;
 using BH.oM.Base;
+using BH.oM.Classification.Element;
 using System;
 using System.Collections.Generic;
 using System.Linq;

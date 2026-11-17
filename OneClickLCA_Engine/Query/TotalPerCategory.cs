@@ -20,13 +20,14 @@
  * along with this code. If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>.      
  */
 
+using BH.Engine.Classification;
 using BH.oM.Adapters.OneClickLCA;
 using BH.oM.Base;
 using BH.oM.Base.Attributes;
+using BH.oM.Classification.Element;
 using BH.oM.LifeCycleAssessment;
 using BH.oM.LifeCycleAssessment.MaterialFragments;
 using BH.oM.LifeCycleAssessment.Results;
-using BH.oM.OneClickLCA.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
